@@ -190,30 +190,30 @@ recycle.data <- function(data, data.per, max.n, units) {
 
 # Make sure that and "str*" and "grob*" units have data
 valid.data <- function(units, data) {
-    n <- length(units)
-    str.units <- stringUnit(units)
-    if (any(str.units))
-        for (i in (1L:n)[str.units])
-            if (!(length(data) >= i &&
-                  (is.character(data[[i]]) || is.language(data[[i]]))))
-                stop("no string supplied for 'strwidth/height' unit")
-    # Make sure that a grob has been specified
-    grob.units <- grobUnit(units)
-    if (any(grob.units))
-        for (i in (1L:n)[grob.units]) {
-            if (!(length(data) >= i &&
-                  (is.grob(data[[i]]) || inherits(data[[i]], "gPath") ||
-                   is.character(data[[i]]))))
-                stop("no 'grob' supplied for 'grobwidth/height' unit")
-            if (is.character(data[[i]]))
-                data[[i]] <- gPath(data[[i]])
-            if (inherits(data[[i]], "gPath"))
-                if (depth(data[[i]]) > 1)
-                    stop("'gPath' must have depth 1 in 'grobwidth/height' units")
-        }
-    # Make sure that where no data is required, the data is NULL
-    if (!all(sapply(data[!(str.units | grob.units)], is.null)))
-        stop("non-NULL value supplied for plain unit")
+    # n <- length(units)
+    # str.units <- stringUnit(units)
+    # if (any(str.units))
+    #     for (i in (1L:n)[str.units])
+    #         if (!(length(data) >= i &&
+    #               (is.character(data[[i]]) || is.language(data[[i]]))))
+    #             stop("no string supplied for 'strwidth/height' unit")
+    # # Make sure that a grob has been specified
+    # grob.units <- grobUnit(units)
+    # if (any(grob.units))
+    #     for (i in (1L:n)[grob.units]) {
+    #         if (!(length(data) >= i &&
+    #               (is.grob(data[[i]]) || inherits(data[[i]], "gPath") ||
+    #                is.character(data[[i]]))))
+    #             stop("no 'grob' supplied for 'grobwidth/height' unit")
+    #         if (is.character(data[[i]]))
+    #             data[[i]] <- gPath(data[[i]])
+    #         if (inherits(data[[i]], "gPath"))
+    #             if (depth(data[[i]]) > 1)
+    #                 stop("'gPath' must have depth 1 in 'grobwidth/height' units")
+    #     }
+    # # Make sure that where no data is required, the data is NULL
+    # if (!all(sapply(data[!(str.units | grob.units)], is.null)))
+    #     stop("non-NULL value supplied for plain unit")
     data
 }
 

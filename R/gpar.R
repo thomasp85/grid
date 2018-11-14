@@ -42,110 +42,110 @@ validGP <- function(gpars) {
       stop(gettextf("'gpar' element '%s' must not be length 0", gparname),
            domain = NA)
   }
-  # Check a gpar is numeric and not NULL
-  numnotnull <- function(gparname) {
-    if (!is.na(match(gparname, names(gpars)))) {
-      if (is.null(gpars[[gparname]]))
-        gpars[[gparname]] <<- NULL
-      else {
-        check.length(gparname)
-        gpars[[gparname]] <<- as.numeric(gpars[[gparname]])
-      }
-    }
-  }
-  checkNA <- function(gparname) {
-      if (!is.na(match(gparname, names(gpars)))) {
-          if (any(is.na(gpars[[gparname]]))) {
-              # ALL NA gets removed (ignored)
-              if (all(is.na(gpars[[gparname]]))) {
-                  gpars[[gparname]] <<- NULL
-              } else {
-                  stop(gettextf("mixture of missing and non-missing values for %s",
-                                gparname),
-                       domain=NA)
-              }
-          }
-      }
-  }
-  # fontsize, lineheight, cex, lwd should be numeric and not NULL
-  numnotnull("fontsize")
-  checkNA("fontsize")
-  numnotnull("lineheight")
-  checkNA("lineheight")
-  numnotnull("cex")
-  checkNA("cex")
-  numnotnull("lwd")
-  numnotnull("lex")
-  # gamma defunct in 2.7.0
-  if ("gamma" %in% names(gpars)) {
-    warning("'gamma' 'gpar' element is defunct")
-    gpars$gamma <- NULL
-  }
-  numnotnull("alpha")
-  # col and fill are converted in C code
-  # BUT still want to check length > 0
-  if (!is.na(match("col", names(gpars)))) {
-      if (is.null(gpars$col))
-          gpars$col <- NULL
-      else
-          check.length("col")
-  }
-  if (!is.na(match("fill", names(gpars)))) {
-      if (is.null(gpars$fill))
-          gpars$fill <- NULL
-      else
-          check.length("fill")
-  }
-  # lty converted in C code
-  # BUT still want to check for NULL and check length > 0
-  if (!is.na(match("lty", names(gpars)))) {
-    if (is.null(gpars$lty))
-      gpars$lty <- NULL
-    else
-      check.length("lty")
-  }
-  if (!is.na(match("lineend", names(gpars)))) {
-    if (is.null(gpars$lineend))
-      gpars$lineend <- NULL
-    else
-      check.length("lineend")
-  }
-  if (!is.na(match("linejoin", names(gpars)))) {
-    if (is.null(gpars$linejoin))
-      gpars$linejoin <- NULL
-    else
-      check.length("linejoin")
-  }
-  # linemitre should be larger than 1
-  numnotnull("linemitre")
-  if (!is.na(match("linemitre", names(gpars)))) {
-    if (any(gpars$linemitre < 1))
-      stop("invalid 'linemitre' value")
-  }
-  # alpha should be 0 to 1
-  if (!is.na(match("alpha", names(gpars)))) {
-    if (any(gpars$alpha < 0 || gpars$alpha > 1))
-      stop("invalid 'alpha' value")
-  }
-  # font should be integer and not NULL
-  if (!is.na(match("font", names(gpars)))) {
-    if (is.null(gpars$font))
-      gpars$font <- NULL
-    else {
-      check.length("font")
-      gpars$font <- as.integer(gpars$font)
-    }
-  }
-  # fontfamily should be character
-  if (!is.na(match("fontfamily", names(gpars)))) {
-    if (is.null(gpars$fontfamily))
-      gpars$fontfamily <- NULL
-    else {
-      check.length("fontfamily")
-      gpars$fontfamily <- as.character(gpars$fontfamily)
-      checkNA("fontfamily")
-    }
-  }
+  # # Check a gpar is numeric and not NULL
+  # numnotnull <- function(gparname) {
+  #   if (!is.na(match(gparname, names(gpars)))) {
+  #     if (is.null(gpars[[gparname]]))
+  #       gpars[[gparname]] <<- NULL
+  #     else {
+  #       check.length(gparname)
+  #       gpars[[gparname]] <<- as.numeric(gpars[[gparname]])
+  #     }
+  #   }
+  # }
+  # checkNA <- function(gparname) {
+  #     if (!is.na(match(gparname, names(gpars)))) {
+  #         if (any(is.na(gpars[[gparname]]))) {
+  #             # ALL NA gets removed (ignored)
+  #             if (all(is.na(gpars[[gparname]]))) {
+  #                 gpars[[gparname]] <<- NULL
+  #             } else {
+  #                 stop(gettextf("mixture of missing and non-missing values for %s",
+  #                               gparname),
+  #                      domain=NA)
+  #             }
+  #         }
+  #     }
+  # }
+  # # fontsize, lineheight, cex, lwd should be numeric and not NULL
+  # numnotnull("fontsize")
+  # checkNA("fontsize")
+  # numnotnull("lineheight")
+  # checkNA("lineheight")
+  # numnotnull("cex")
+  # checkNA("cex")
+  # numnotnull("lwd")
+  # numnotnull("lex")
+  # # gamma defunct in 2.7.0
+  # if ("gamma" %in% names(gpars)) {
+  #   warning("'gamma' 'gpar' element is defunct")
+  #   gpars$gamma <- NULL
+  # }
+  # numnotnull("alpha")
+  # # col and fill are converted in C code
+  # # BUT still want to check length > 0
+  # if (!is.na(match("col", names(gpars)))) {
+  #     if (is.null(gpars$col))
+  #         gpars$col <- NULL
+  #     else
+  #         check.length("col")
+  # }
+  # if (!is.na(match("fill", names(gpars)))) {
+  #     if (is.null(gpars$fill))
+  #         gpars$fill <- NULL
+  #     else
+  #         check.length("fill")
+  # }
+  # # lty converted in C code
+  # # BUT still want to check for NULL and check length > 0
+  # if (!is.na(match("lty", names(gpars)))) {
+  #   if (is.null(gpars$lty))
+  #     gpars$lty <- NULL
+  #   else
+  #     check.length("lty")
+  # }
+  # if (!is.na(match("lineend", names(gpars)))) {
+  #   if (is.null(gpars$lineend))
+  #     gpars$lineend <- NULL
+  #   else
+  #     check.length("lineend")
+  # }
+  # if (!is.na(match("linejoin", names(gpars)))) {
+  #   if (is.null(gpars$linejoin))
+  #     gpars$linejoin <- NULL
+  #   else
+  #     check.length("linejoin")
+  # }
+  # # linemitre should be larger than 1
+  # numnotnull("linemitre")
+  # if (!is.na(match("linemitre", names(gpars)))) {
+  #   if (any(gpars$linemitre < 1))
+  #     stop("invalid 'linemitre' value")
+  # }
+  # # alpha should be 0 to 1
+  # if (!is.na(match("alpha", names(gpars)))) {
+  #   if (any(gpars$alpha < 0 || gpars$alpha > 1))
+  #     stop("invalid 'alpha' value")
+  # }
+  # # font should be integer and not NULL
+  # if (!is.na(match("font", names(gpars)))) {
+  #   if (is.null(gpars$font))
+  #     gpars$font <- NULL
+  #   else {
+  #     check.length("font")
+  #     gpars$font <- as.integer(gpars$font)
+  #   }
+  # }
+  # # fontfamily should be character
+  # if (!is.na(match("fontfamily", names(gpars)))) {
+  #   if (is.null(gpars$fontfamily))
+  #     gpars$fontfamily <- NULL
+  #   else {
+  #     check.length("fontfamily")
+  #     gpars$fontfamily <- as.character(gpars$fontfamily)
+  #     checkNA("fontfamily")
+  #   }
+  # }
   # fontface can be character or integer;  map character to integer
   # store value in font
   # Illegal to specify both font and fontface
