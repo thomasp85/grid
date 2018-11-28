@@ -1405,7 +1405,7 @@ text_key <- function(grob, width = FALSE) {
       (!width && !grob$rot %in% c(0, 180))) {
     key <- paste0(grob$label, ":", grob$rot, ":", key)
   } else {
-    n_lines <- gregexpr('\n', grob$label, fixed = TRUE)
+    n_lines <- length(gregexpr('\n', grob$label, fixed = TRUE)[[1]])
     key <- paste0(n_lines, "<>", key)
   }
   key
