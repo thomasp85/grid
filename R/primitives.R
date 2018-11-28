@@ -1397,29 +1397,54 @@ yDetails.text <- function(x, theta) {
   else
     unit(bounds[2L], "inches")
 }
-
-widthDetails.text <- function(x) {
-  bounds <- grid.Call(C_textBounds, as.graphicsAnnot(x$label),
-                      x$x, x$y,
-                      resolveHJust(x$just, x$hjust),
-                      resolveVJust(x$just, x$vjust),
-                      x$rot, 0)
-  if (is.null(bounds))
-    unit(0, "inches")
-  else
-    unit(bounds[3L], "inches")
+text_key <- function(grob, width = FALSE) {
+  cur_dev <- names(grDevices::dev.cur())
+  gp <- unclass(grob$gp)
+  key <- paste0(cur_dev, ':', gp$fontfamily, ':', gp$fontface, ":", gp$fontsize, ":", gp$cex, ":", gp$lineheight)
+  if ((width && !grob$rot %in% c(90, 270)) ||
+      (!width && !grob$rot %in% c(0, 180))) {
+    key <- paste0(grob$label, ":", grob$rot, ":", key)
+  } else {
+    n_lines <- gregexpr('\n', grob$label, fixed = TRUE)
+    key <- paste0(n_lines, "<>", key)
+  }
+  key
 }
-
+width_cache <- new.env(parent = emptyenv())
+widthDetails.text <- function(x) {
+  key <- text_key(x, TRUE)
+  bounds <- width_cache[[key]]
+  if (is.null(bounds)) {
+    bounds <- grid.Call(C_textBounds, as.graphicsAnnot(x$label),
+                        x$x, x$y,
+                        resolveHJust(x$just, x$hjust),
+                        resolveVJust(x$just, x$vjust),
+                        x$rot, 0)
+    bounds <- if (is.null(bounds))
+      unit(0, "inches")
+    else
+      unit(bounds[3L], "inches")
+    width_cache[[key]] <- bounds
+  }
+  bounds
+}
+height_cache <- new.env(parent = emptyenv())
 heightDetails.text <- function(x) {
-  bounds <- grid.Call(C_textBounds, as.graphicsAnnot(x$label),
-                      x$x, x$y,
-                      resolveHJust(x$just, x$hjust),
-                      resolveVJust(x$just, x$vjust),
-                      x$rot, 0)
-  if (is.null(bounds))
-    unit(0, "inches")
-  else
-    unit(bounds[4L], "inches")
+  key <- text_key(x, FALSE)
+  bounds <- height_cache[[key]]
+  if (is.null(bounds)) {
+    bounds <- grid.Call(C_textBounds, as.graphicsAnnot(x$label),
+                        x$x, x$y,
+                        resolveHJust(x$just, x$hjust),
+                        resolveVJust(x$just, x$vjust),
+                        x$rot, 0)
+    bounds <- if (is.null(bounds))
+      unit(0, "inches")
+    else
+      unit(bounds[4L], "inches")
+    height_cache[[key]] <- bounds
+  }
+  bounds
 }
 
 ascentDetails.text <- function(x) {
