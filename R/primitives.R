@@ -1403,7 +1403,7 @@ text_key <- function(grob, width = FALSE) {
   key <- paste0(cur_dev, ':', gp$fontfamily, ':', gp$fontface, ":", gp$fontsize, ":", gp$cex, ":", gp$lineheight)
   if ((width && !grob$rot %in% c(90, 270)) ||
       (!width && !grob$rot %in% c(0, 180))) {
-    key <- paste0(grob$label, ":", grob$rot, ":", key)
+    key <- paste0(grob$label[1], ":", grob$rot, ":", key) # C_textBounds ignores all but the first label
   } else {
     n_lines <- length(gregexpr('\n', grob$label, fixed = TRUE)[[1]])
     key <- paste0(n_lines, "<>", key)
