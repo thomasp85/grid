@@ -368,8 +368,7 @@ unit.list <- function(unit) {
     if (is.unit.list(unit))
 	unit
     else
-	structure(class = c("unit.list", "unit"),
-		  lapply(seq_along(unit), function(i) unit[i]))
+	`attributes<-`(lapply(seq_along(unit), function(i) unit[i]), list(class = c("unit.list", "unit")))
 }
 
 is.unit.list <- function(x) {
@@ -492,8 +491,7 @@ print.unit <- function(x, ...) {
     if (top && any(index > this.length))
       stop("index out of bounds (unit list subsetting)")
   }
-  structure(class = class(x),
-            unclass(x)[(index - 1L) %% this.length + 1L])
+  `attributes<-`(unclass(x)[(index - 1L) %% this.length + 1L], list(class = class(x)))
 }
 
 # `[<-.unit` methods
@@ -569,8 +567,7 @@ unit.c <- function(...) {
 }
 
 unit.list.from.list <- function(x)
-  structure(class = c("unit.list", "unit"),
-            do.call("c", lapply(x, unit.list)))
+  `attributes<-`(do.call("c", lapply(x, unit.list)), list(class = c("unit.list", "unit")))
 
 
 #########################
@@ -848,8 +845,7 @@ absolute.units.unit <- function(unit) {
 }
 
 absolute.units.unit.list <- function(unit) {
-  structure(class = class(unit),
-            lapply(unit, absolute.units))
+  `attributes<-`(lapply(unit, absolute.units), list(class = class(unit)))
 }
 
 absolute.units.unit.arithmetic <- function(unit) {
