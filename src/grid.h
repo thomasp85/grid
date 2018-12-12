@@ -34,11 +34,11 @@
 #define _(String) (String)
 #endif
 
-/* All grid type names are prefixed with an "L" 
- * All grid global variable names are prefixed with an "L_" 
+/* All grid type names are prefixed with an "L"
+ * All grid global variable names are prefixed with an "L_"
  */
 
-/* This information is stored with R's graphics engine so that 
+/* This information is stored with R's graphics engine so that
  * grid can have state information per device and grid output can
  * be maintained on multiple devices.
  */
@@ -80,7 +80,7 @@
 #define VP_VALIDLPOSROW 14
 #define VP_VALIDLPOSCOL 15
 #define VP_NAME 16
-/* 
+/*
  * Additional structure of a pushedvp
  */
 #define PVP_PARENTGPAR 17
@@ -125,7 +125,7 @@
 #define GP_LINEJOIN 12
 #define GP_LINEMITRE 13
 #define GP_LEX 14
-/* 
+/*
  * Keep fontface at the end because it is never used in C code
  */
 #define GP_FONTFACE 15
@@ -194,7 +194,13 @@ typedef enum {
     L_MYLINES = 103,
     L_MYCHAR = 104,
     L_MYSTRINGWIDTH = 105,
-    L_MYSTRINGHEIGHT = 106
+    L_MYSTRINGHEIGHT = 106,
+    /*
+     * Arithmetic units
+     */
+    L_SUM = 201,
+    L_MIN = 202,
+    L_MAX = 203
 } LUnit;
 
 typedef enum {
@@ -207,7 +213,7 @@ typedef enum {
 } LJustification;
 
 /* An arbitrarily-oriented rectangle.
- * The vertices are assumed to be in order going anticlockwise 
+ * The vertices are assumed to be in order going anticlockwise
  * around the rectangle.
  */
 typedef struct {
@@ -252,17 +258,17 @@ SEXP R_gridEvalEnv;
 /* Functions called by R code
  * (from all over the place)
  */
-SEXP L_initGrid(SEXP GridEvalEnv); 
-SEXP L_killGrid(); 
+SEXP L_initGrid(SEXP GridEvalEnv);
+SEXP L_killGrid();
 SEXP L_gridDirty();
-SEXP L_currentViewport(); 
+SEXP L_currentViewport();
 SEXP L_setviewport(SEXP vp, SEXP hasParent);
 SEXP L_downviewport(SEXP vp, SEXP strict);
 SEXP L_downvppath(SEXP path, SEXP name, SEXP strict);
 SEXP L_unsetviewport(SEXP last);
 SEXP L_upviewport(SEXP last);
-SEXP L_getDisplayList(); 
-SEXP L_setDisplayList(SEXP dl); 
+SEXP L_getDisplayList();
+SEXP L_setDisplayList(SEXP dl);
 SEXP L_getDLelt(SEXP index);
 SEXP L_setDLelt(SEXP value);
 SEXP L_getDLindex();
@@ -281,26 +287,26 @@ SEXP L_newpage();
 SEXP L_initGPar();
 SEXP L_initViewportStack();
 SEXP L_initDisplayList();
-SEXP L_convertToNative(SEXP x, SEXP what); 
+SEXP L_convertToNative(SEXP x, SEXP what);
 SEXP L_moveTo(SEXP x, SEXP y);
 SEXP L_lineTo(SEXP x, SEXP y, SEXP arrow);
-SEXP L_lines(SEXP x, SEXP y, SEXP index, SEXP arrow); 
-SEXP L_segments(SEXP x0, SEXP y0, SEXP x1, SEXP y1, SEXP arrow); 
-SEXP L_arrows(SEXP x1, SEXP x2, SEXP xnm1, SEXP xn, 
-	      SEXP y1, SEXP y2, SEXP ynm1, SEXP yn, 
+SEXP L_lines(SEXP x, SEXP y, SEXP index, SEXP arrow);
+SEXP L_segments(SEXP x0, SEXP y0, SEXP x1, SEXP y1, SEXP arrow);
+SEXP L_arrows(SEXP x1, SEXP x2, SEXP xnm1, SEXP xn,
+	      SEXP y1, SEXP y2, SEXP ynm1, SEXP yn,
 	      SEXP angle, SEXP length, SEXP ends, SEXP type);
 SEXP L_path(SEXP x, SEXP y, SEXP index, SEXP rule);
 SEXP L_polygon(SEXP x, SEXP y, SEXP index);
 SEXP L_xspline(SEXP x, SEXP y, SEXP s, SEXP o, SEXP a, SEXP rep, SEXP index);
 SEXP L_circle(SEXP x, SEXP y, SEXP r);
-SEXP L_rect(SEXP x, SEXP y, SEXP w, SEXP h, SEXP hjust, SEXP vjust); 
-SEXP L_raster(SEXP raster, SEXP x, SEXP y, SEXP w, SEXP h, 
+SEXP L_rect(SEXP x, SEXP y, SEXP w, SEXP h, SEXP hjust, SEXP vjust);
+SEXP L_raster(SEXP raster, SEXP x, SEXP y, SEXP w, SEXP h,
               SEXP hjust, SEXP vjust, SEXP interpolate);
 SEXP L_cap();
-SEXP L_text(SEXP label, SEXP x, SEXP y, SEXP hjust, SEXP vjust, 
+SEXP L_text(SEXP label, SEXP x, SEXP y, SEXP hjust, SEXP vjust,
 	    SEXP rot, SEXP checkOverlap);
 SEXP L_points(SEXP x, SEXP y, SEXP pch, SEXP size);
-SEXP L_clip(SEXP x, SEXP y, SEXP w, SEXP h, SEXP hjust, SEXP vjust); 
+SEXP L_clip(SEXP x, SEXP y, SEXP w, SEXP h, SEXP hjust, SEXP vjust);
 SEXP L_pretty(SEXP scale);
 SEXP L_locator();
 SEXP L_convert(SEXP x, SEXP whatfrom,
@@ -335,10 +341,6 @@ void location(double x, double y, LLocation v);
 void trans(LLocation vin, LTransform m, LLocation vout);
 
 /* From unit.c */
-int isUnitArithmetic(SEXP ua);
-
-int isUnitList(SEXP ul);
-
 SEXP unit(double value, int unit);
 
 double unitValue(SEXP unit, int index);
@@ -355,7 +357,7 @@ double pureNullUnitValue(SEXP unit, int index);
 
 int pureNullUnit(SEXP unit, int index, pGEDevDesc dd);
 
-double transformX(SEXP x, int index, LViewportContext vpc, 
+double transformX(SEXP x, int index, LViewportContext vpc,
 		  const pGEcontext gc,
 		  double widthCM, double heightCM,
 		  int nullLMode, int nullAMode,
@@ -413,13 +415,13 @@ void transformDimn(SEXP w, SEXP h, int index, LViewportContext vpc,
 		   double rotationAngle,
 		   double *ww, double *hh);
 
-double transformXYFromINCHES(double location, int unit, 
+double transformXYFromINCHES(double location, int unit,
 			     double scalemin, double scalemax,
 			     const pGEcontext gc,
 			     double thisCM, double otherCM,
 			     pGEDevDesc dd);
 
-double transformWidthHeightFromINCHES(double value, int unit, 
+double transformWidthHeightFromINCHES(double value, int unit,
 				      double scalemin, double scalemax,
 				      const pGEcontext gc,
 				      double thisCM, double otherCM,
@@ -454,8 +456,8 @@ void setSymbolValue(char *symbolName, SEXP value);
 
 double numeric(SEXP x, int index);
 
-void rect(double x1, double x2, double x3, double x4, 
-	  double y1, double y2, double y3, double y4, 
+void rect(double x1, double x2, double x3, double x4,
+	  double y1, double y2, double y3, double y4,
 	  LRect *r);
 
 void copyRect(LRect r1, LRect *r);
@@ -604,20 +606,20 @@ int gridRegisterIndex;
 
 
 /* From grid.c */
-SEXP doSetViewport(SEXP vp, 
+SEXP doSetViewport(SEXP vp,
 		   Rboolean topLevelVP,
 		   Rboolean pushing,
 		   pGEDevDesc dd);
 
-void getDeviceSize(pGEDevDesc dd, double *devWidthCM, double *devHeightCM); 
+void getDeviceSize(pGEDevDesc dd, double *devWidthCM, double *devHeightCM);
 
 /* This is, confusingly, a wrapper for GEcurrentDevice */
 pGEDevDesc getDevice();
 
 void dirtyGridDevice(pGEDevDesc dd);
 
-void getViewportTransform(SEXP currentvp, 
-			  pGEDevDesc dd, 
+void getViewportTransform(SEXP currentvp,
+			  pGEDevDesc dd,
 			  double *vpWidthCM, double *vpHeightCM,
 			  LTransform transform, double *rotationAngle);
 
@@ -625,7 +627,7 @@ SEXP L_circleBounds(SEXP x, SEXP y, SEXP r, SEXP theta);
 SEXP L_locnBounds(SEXP x, SEXP y, SEXP theta);
 SEXP L_rectBounds(SEXP x, SEXP y, SEXP w, SEXP h, SEXP hjust, SEXP vjust,
 		  SEXP theta);
-SEXP L_textBounds(SEXP label, SEXP x, SEXP y, 
+SEXP L_textBounds(SEXP label, SEXP x, SEXP y,
 		  SEXP hjust, SEXP vjust, SEXP rot, SEXP theta);
 SEXP L_xsplineBounds(SEXP x, SEXP y, SEXP s, SEXP o, SEXP a, SEXP rep,
 		     SEXP index, SEXP theta);
@@ -634,8 +636,14 @@ SEXP L_xsplinePoints(SEXP x, SEXP y, SEXP s, SEXP o, SEXP a, SEXP rep,
 
 /* From unit.c */
 SEXP validUnits(SEXP units);
+SEXP constructUnits(SEXP amount, SEXP data, SEXP valid_units);
+SEXP matchUnit(SEXP units, SEXP unit);
+SEXP addUnits(SEXP u1, SEXP u2, SEXP ind1, SEXP ind2);
+SEXP flipUnits(SEXP units);
+SEXP absoluteUnits(SEXP units);
+SEXP summaryUnits(SEXP units, SEXP inds, SEXP length_out, SEXP op_type);
 
 /* From gpar.c */
 SEXP L_getGPar(void);
 SEXP L_setGPar(SEXP gpars);
-    
+
