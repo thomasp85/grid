@@ -23,6 +23,9 @@
 #include <float.h>
 #include <string.h>
 
+#define isAbsolute(X) (X > 1000 || (X > 100 && X < 200) || (X < 19 && X > 0 && X != 4 && X != 6))
+#define isArith(X) X > 200 && X < 300
+
 /* Function to build a single-value unit SEXP internally.
  * Cannot build units requiring data as yet.
  */
@@ -154,7 +157,7 @@ double pureNullUnitValue(SEXP unit, int index)
 
 int pureNullUnit(SEXP unit, int index, pGEDevDesc dd) {
   int i, n, result, u = unitUnit(unit, index);
-  if (u == L_SUM || u == L_MIN || u == L_MAX) {
+  if (isArith(u)) {
     SEXP data = unitData(unit, index);
     n = unitLength(data);
     i = 0;
@@ -1573,13 +1576,34 @@ SEXP matchUnit(SEXP units, SEXP unit) {
   UNPROTECT(1);
   return matches;
 }
-#define isAbsolute(X) (X > 1000 || (X > 100 && X < 200) || (X < 19 && X > 0 && X != 4 && X != 6))
+
+int allAbsolute(SEXP units) {
+  int i, u, all = 1, n = unitLength(units);
+
+  for (i = 0; i < n; i++) {
+    u = unitUnit(units, i);
+    if (isArith(u)) {
+      all = allAbsolute(unitData(units, i));
+    } else {
+      all = isAbsolute(u);
+    }
+    if (!all) break;
+  }
+
+  return all;
+}
+
 SEXP absoluteUnits(SEXP units) {
-  int i, n = unitLength(units);
+  int i, u, n = unitLength(units);
   int is_absolute[n];
   int all_absolute = 1;
   for (i = 0; i < n; i++) {
-    is_absolute[i] = isAbsolute(unitUnit(units, i));
+    u = unitUnit(units, i);
+    if (isArith(u)) {
+      is_absolute[i] = allAbsolute(unitData(units, i));
+    } else {
+      is_absolute[i] = isAbsolute(u);
+    }
     if (!is_absolute[i]) all_absolute = 0;
   }
   // Early exit avoiding a copy
@@ -1594,10 +1618,16 @@ SEXP absoluteUnits(SEXP units) {
   for (i = 0; i < n; i++) {
     if (is_absolute[i]) {
       unit = PROTECT(shallow_duplicate(VECTOR_ELT(units, i)));
+      MARK_NOT_MUTABLE(unit);
+    } else if (isArith(unitUnit(units, i))) {
+      unit = PROTECT(allocVector(VECSXP, 3));
+      SET_VECTOR_ELT(unit, 0, VECTOR_ELT(VECTOR_ELT(units, i), 0));
+      SET_VECTOR_ELT(unit, 1, absoluteUnits(unitData(units, i)));
+      SET_VECTOR_ELT(unit, 2, VECTOR_ELT(VECTOR_ELT(units, i), 2));
     } else {
       unit = PROTECT(shallow_duplicate(null_unit));
+      MARK_NOT_MUTABLE(unit);
     }
-    MARK_NOT_MUTABLE(unit);
     SET_VECTOR_ELT(absolutes, i, unit);
     UNPROTECT(1);
   }
