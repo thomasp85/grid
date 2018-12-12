@@ -224,6 +224,10 @@ get_unit_desc <- function(x, format = FALSE, ...) {
 as.character.unit <- function(x, ...) {
   vapply(x, get_unit_desc, character(1))
 }
+as.numeric.unit <- function(x, ...) {
+  vapply(unclass(x), `[[`, numeric(1), 1L)
+}
+as.vector.unit <- as.numeric.unit
 format.unit <- function(x, ...) {
   vapply(x, get_unit_desc, character(1), format = TRUE, ...)
 }
