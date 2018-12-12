@@ -87,26 +87,26 @@ int unitLength(SEXP u) {
  */
 static double evaluateNullUnit(double value, double thisCM, int nullLayoutMode,
                                int nullArithmeticMode) {
-    double result = value;
-    if (!nullLayoutMode)
-	switch (nullArithmeticMode) {
-	case L_plain:
-	case L_adding:
-	case L_subtracting:
-	case L_summing:
-	    result = 0;
-	    break;
-	case L_multiplying:
-	    result = 0;
-	    break;
-	case L_maximising:
-	    result = 0;
-	    break;
-	case L_minimising:
-	    result = thisCM;
-	    break;
-	}
-    return result;
+  double result = value;
+  if (!nullLayoutMode)
+    switch (nullArithmeticMode) {
+    case L_plain:
+    case L_adding:
+    case L_subtracting:
+    case L_summing:
+      result = 0;
+      break;
+    case L_multiplying:
+      result = 0;
+      break;
+    case L_maximising:
+      result = 0;
+      break;
+    case L_minimising:
+      result = thisCM;
+      break;
+    }
+  return result;
 }
 
 /*
@@ -169,10 +169,10 @@ int pureNullUnit(SEXP unit, int index, pGEDevDesc dd) {
     return result;
   }
 
-	/* Special case:  if "grobwidth" or "grobheight" unit
-	 * and width/height(grob) is pure null
-	 */
-	if (u == L_GROBWIDTH) {
+  /* Special case:  if "grobwidth" or "grobheight" unit
+   * and width/height(grob) is pure null
+   */
+  if (u == L_GROBWIDTH) {
     SEXP grob, updatedgrob, width;
     SEXP widthPreFn, widthFn, widthPostFn, findGrobFn;
     SEXP R_fcall0, R_fcall1, R_fcall2, R_fcall3;
@@ -211,7 +211,7 @@ int pureNullUnit(SEXP unit, int index, pGEDevDesc dd) {
     setGridStateElement(dd, GSS_GPAR, savedgpar);
     setGridStateElement(dd, GSS_CURRGROB, savedgrob);
     UNPROTECT(11);
-	} else if (u == L_GROBHEIGHT) {
+  } else if (u == L_GROBHEIGHT) {
     SEXP grob, updatedgrob, height;
     SEXP heightPreFn, heightFn, heightPostFn, findGrobFn;
     SEXP R_fcall0, R_fcall1, R_fcall2, R_fcall3;
@@ -250,7 +250,7 @@ int pureNullUnit(SEXP unit, int index, pGEDevDesc dd) {
     setGridStateElement(dd, GSS_GPAR, savedgpar);
     setGridStateElement(dd, GSS_CURRGROB, savedgrob);
     UNPROTECT(11);
-	} else {
+  } else {
     result = u == L_NULL;
   }
   return result;
@@ -272,296 +272,296 @@ int pureNullUnit(SEXP unit, int index, pGEDevDesc dd) {
  */
 
 double evaluateGrobUnit(double value, SEXP grob,
-			double vpwidthCM, double vpheightCM,
-			int nullLMode, int nullAMode,
-			/*
-			 * Evaluation type
-			 * 0 = x, 1 = y, 2 = width, 3 = height
-			 */
-			int evalType,
-			pGEDevDesc dd)
+                        double vpwidthCM, double vpheightCM,
+                        int nullLMode, int nullAMode,
+                        /*
+                         * Evaluation type
+                         * 0 = x, 1 = y, 2 = width, 3 = height
+                         */
+                        int evalType,
+                        pGEDevDesc dd)
 {
-    double vpWidthCM, vpHeightCM;
-    double rotationAngle;
-    LViewportContext vpc;
-    R_GE_gcontext gc;
-    LTransform transform, savedTransform;
-    SEXP currentvp, currentgp;
-    SEXP preFn,  postFn, findGrobFn;
-    SEXP evalFnx = R_NilValue, evalFny = R_NilValue;
-    SEXP R_fcall0, R_fcall1, R_fcall2x, R_fcall2y, R_fcall3;
-    SEXP savedgpar, savedgrob, updatedgrob;
-    SEXP unitx = R_NilValue, unity = R_NilValue;
-    double result = 0.0;
-    Rboolean protectedGrob = FALSE;
+  double vpWidthCM, vpHeightCM;
+  double rotationAngle;
+  LViewportContext vpc;
+  R_GE_gcontext gc;
+  LTransform transform, savedTransform;
+  SEXP currentvp, currentgp;
+  SEXP preFn,  postFn, findGrobFn;
+  SEXP evalFnx = R_NilValue, evalFny = R_NilValue;
+  SEXP R_fcall0, R_fcall1, R_fcall2x, R_fcall2y, R_fcall3;
+  SEXP savedgpar, savedgrob, updatedgrob;
+  SEXP unitx = R_NilValue, unity = R_NilValue;
+  double result = 0.0;
+  Rboolean protectedGrob = FALSE;
+  /*
+   * We are just doing calculations, not drawing, so
+   * we don't want anything recorded on the graphics engine DL
+   *
+   * FIXME:  This should probably be done via a GraphicsEngine.h
+   * function call rather than directly playing with dd->recordGraphics
+   */
+  Rboolean record = dd->recordGraphics;
+  dd->recordGraphics = FALSE;
+  /*
+   * Save the current viewport transform
+   * (use to convert location relative to current viewport)
+   */
+  currentvp = gridStateElement(dd, GSS_VP);
+  getViewportTransform(currentvp, dd,
+                       &vpWidthCM, &vpHeightCM,
+                       savedTransform, &rotationAngle);
+  /*
+   * Save the current gpar state and restore it at the end
+   */
+  PROTECT(savedgpar = gridStateElement(dd, GSS_GPAR));
+  /*
+   * Save the current grob and restore it at the end
+   */
+  PROTECT(savedgrob = gridStateElement(dd, GSS_CURRGROB));
+  /*
+   * Set up for calling R functions
+   */
+  PROTECT(preFn = findFun(install("preDraw"), R_gridEvalEnv));
+  switch(evalType) {
+  case 0:
+  case 1:
+    PROTECT(evalFnx = findFun(install("xDetails"), R_gridEvalEnv));
+    PROTECT(evalFny = findFun(install("yDetails"), R_gridEvalEnv));
+    break;
+  case 2:
+    PROTECT(evalFnx = findFun(install("width"), R_gridEvalEnv));
+    break;
+  case 3:
+    PROTECT(evalFny = findFun(install("height"), R_gridEvalEnv));
+    break;
+  case 4:
+    PROTECT(evalFny = findFun(install("ascentDetails"), R_gridEvalEnv));
+    break;
+  case 5:
+    PROTECT(evalFny = findFun(install("descentDetails"), R_gridEvalEnv));
+    break;
+  }
+  PROTECT(postFn = findFun(install("postDraw"), R_gridEvalEnv));
+  /*
+   * If grob is actually a gPath, use it to find an actual grob
+   */
+  if (inherits(grob, "gPath")) {
     /*
-     * We are just doing calculations, not drawing, so
-     * we don't want anything recorded on the graphics engine DL
+     * If the current grob is NULL then we are at the top level
+     * and we search the display list, otherwise we search the
+     * children of the current grob
      *
-     * FIXME:  This should probably be done via a GraphicsEngine.h
-     * function call rather than directly playing with dd->recordGraphics
+     * NOTE: assume here that only gPath of depth == 1 are valid
      */
-    Rboolean record = dd->recordGraphics;
-    dd->recordGraphics = FALSE;
-    /*
-     * Save the current viewport transform
-     * (use to convert location relative to current viewport)
-     */
-    currentvp = gridStateElement(dd, GSS_VP);
-    getViewportTransform(currentvp, dd,
-			 &vpWidthCM, &vpHeightCM,
-			 savedTransform, &rotationAngle);
-    /*
-     * Save the current gpar state and restore it at the end
-     */
-    PROTECT(savedgpar = gridStateElement(dd, GSS_GPAR));
-    /*
-     * Save the current grob and restore it at the end
-     */
-    PROTECT(savedgrob = gridStateElement(dd, GSS_CURRGROB));
-    /*
-     * Set up for calling R functions
-     */
-    PROTECT(preFn = findFun(install("preDraw"), R_gridEvalEnv));
-    switch(evalType) {
-    case 0:
-    case 1:
-	PROTECT(evalFnx = findFun(install("xDetails"), R_gridEvalEnv));
-	PROTECT(evalFny = findFun(install("yDetails"), R_gridEvalEnv));
-	break;
-    case 2:
-	PROTECT(evalFnx = findFun(install("width"), R_gridEvalEnv));
-	break;
-    case 3:
-	PROTECT(evalFny = findFun(install("height"), R_gridEvalEnv));
-	break;
-    case 4:
-	PROTECT(evalFny = findFun(install("ascentDetails"), R_gridEvalEnv));
-        break;
-    case 5:
-	PROTECT(evalFny = findFun(install("descentDetails"), R_gridEvalEnv));
-        break;
-    }
-    PROTECT(postFn = findFun(install("postDraw"), R_gridEvalEnv));
-    /*
-     * If grob is actually a gPath, use it to find an actual grob
-     */
-    if (inherits(grob, "gPath")) {
-	/*
-	 * If the current grob is NULL then we are at the top level
-	 * and we search the display list, otherwise we search the
-	 * children of the current grob
-	 *
-	 * NOTE: assume here that only gPath of depth == 1 are valid
-	 */
-	if (isNull(savedgrob)) {
-	    PROTECT(findGrobFn = findFun(install("findGrobinDL"),
-					 R_gridEvalEnv));
-	    PROTECT(R_fcall0 = lang2(findGrobFn,
-				     getListElement(grob, "name")));
-	    PROTECT(grob = eval(R_fcall0, R_gridEvalEnv));
-	} else {
-	    PROTECT(findGrobFn = findFun(install("findGrobinChildren"),
-					 R_gridEvalEnv));
-	    PROTECT(R_fcall0 = lang3(findGrobFn,
-				     getListElement(grob, "name"),
-				     getListElement(savedgrob, "children")));
-	    PROTECT(grob = eval(R_fcall0, R_gridEvalEnv));
-	}
-	/*
-	 * Flag to make sure we UNPROTECT these at the end
-	 */
-	protectedGrob = TRUE;
-    }
-    /* Call preDraw(grob)
-     */
-    PROTECT(R_fcall1 = lang2(preFn, grob));
-    PROTECT(updatedgrob = eval(R_fcall1, R_gridEvalEnv));
-    /*
-     * The call to preDraw may have pushed viewports and/or
-     * enforced gpar settings, SO we need to re-establish the
-     * current viewport and gpar settings before evaluating the
-     * width unit.
-     *
-     * NOTE:  we are really relying on the grid state to be coherent
-     * when we do stuff like this (i.e., not to have changed since
-     * we started evaluating the unit [other than the changes we may
-     * have deliberately made above by calling preDraw]).  In other
-     * words we are relying on no other drawing occurring at the
-     * same time as we are doing this evaluation.  In other other
-     * words, we are relying on there being only ONE process
-     * (i.e., NOT multi-threaded).
-     */
-    currentvp = gridStateElement(dd, GSS_VP);
-    currentgp = gridStateElement(dd, GSS_GPAR);
-    getViewportTransform(currentvp, dd,
-			 &vpWidthCM, &vpHeightCM,
-			 transform, &rotationAngle);
-    fillViewportContextFromViewport(currentvp, &vpc);
-    /* Call whatever(grob)
-     * to get the unit representing the x/y/width/height
-     */
-    switch (evalType) {
-    case 0:
-    case 1:
-	/*
-	 * When evaluating grobX/grobY, the value of the unit
-	 * is an angle that gets passed to xDetails/yDetails
-	 */
-	{
-	    SEXP val;
-	    PROTECT(val = ScalarReal(value));
-	    PROTECT(R_fcall2x = lang3(evalFnx, updatedgrob, val));
-	    PROTECT(unitx = eval(R_fcall2x, R_gridEvalEnv));
-	    PROTECT(R_fcall2y = lang3(evalFny, updatedgrob, val));
-	    PROTECT(unity = eval(R_fcall2y, R_gridEvalEnv));
-	}
-	break;
-    case 2:
-	PROTECT(R_fcall2x = lang2(evalFnx, updatedgrob));
-	PROTECT(unitx = eval(R_fcall2x, R_gridEvalEnv));
-	break;
-    case 3:
-    case 4:
-    case 5:
-	PROTECT(R_fcall2y = lang2(evalFny, updatedgrob));
-	PROTECT(unity = eval(R_fcall2y, R_gridEvalEnv));
-	break;
+    if (isNull(savedgrob)) {
+      PROTECT(findGrobFn = findFun(install("findGrobinDL"),
+                                   R_gridEvalEnv));
+      PROTECT(R_fcall0 = lang2(findGrobFn,
+                               getListElement(grob, "name")));
+      PROTECT(grob = eval(R_fcall0, R_gridEvalEnv));
+    } else {
+      PROTECT(findGrobFn = findFun(install("findGrobinChildren"),
+                                   R_gridEvalEnv));
+      PROTECT(R_fcall0 = lang3(findGrobFn,
+                               getListElement(grob, "name"),
+                               getListElement(savedgrob, "children")));
+      PROTECT(grob = eval(R_fcall0, R_gridEvalEnv));
     }
     /*
-     * Transform the unit
-     * NOTE:  We transform into INCHES so can produce final answer in terms
-     * of NPC for original context
+     * Flag to make sure we UNPROTECT these at the end
      */
-    /* Special case for "null" units
-     */
-    gcontextFromgpar(currentgp, 0, &gc, dd);
-    switch(evalType) {
-    case 0:
-    case 1:
-	if (evalType && pureNullUnit(unity, 0, dd)) {
-	    result = evaluateNullUnit(pureNullUnitValue(unity, 0),
-				      vpWidthCM,
-				      nullLMode, nullAMode);
-	} else if (pureNullUnit(unitx, 0, dd)) {
-	    result = evaluateNullUnit(pureNullUnitValue(unitx, 0),
-				      vpWidthCM,
-				      nullLMode, nullAMode);
-	} else {
-	    /*
-	     * Transform to device (to allow for viewports in grob)
-	     * then adjust relative to current viewport.
-	     */
-	    double xx, yy;
-	    LLocation lin, lout;
-	    LTransform invt;
-	    invTransform(savedTransform, invt);
-	    transformLocn(unitx, unity, 0,
-			  vpc, &gc,
-			  vpWidthCM, vpHeightCM, dd,
-			  transform, &xx, &yy);
-	    location(xx, yy, lin);
-	    trans(lin, invt, lout);
-	    xx = locationX(lout);
-	    yy = locationY(lout);
-	    if (evalType)
-		result = yy;
-	    else
-		result = xx;
-	}
-	break;
-    case 2:
-	if (pureNullUnit(unitx, 0, dd)) {
-	    result = evaluateNullUnit(pureNullUnitValue(unitx, 0),
-				      vpWidthCM,
-				      nullLMode, nullAMode);
-	} else {
-	    result = transformWidthtoINCHES(unitx, 0, vpc, &gc,
-					    vpWidthCM, vpHeightCM,
-					    dd);
-	}
-	break;
-    case 3:
-    case 4:
-    case 5:
-	if (pureNullUnit(unity, 0, dd)) {
-	    result = evaluateNullUnit(pureNullUnitValue(unity, 0),
-				      vpWidthCM,
-				      nullLMode, nullAMode);
-	} else {
-	    result = transformHeighttoINCHES(unity, 0, vpc, &gc,
-					     vpWidthCM, vpHeightCM,
-					     dd);
-	}
-	break;
-    }
-    /* Call postDraw(grob)
-     */
-    PROTECT(R_fcall3 = lang2(postFn, updatedgrob));
-    eval(R_fcall3, R_gridEvalEnv);
+    protectedGrob = TRUE;
+  }
+  /* Call preDraw(grob)
+   */
+  PROTECT(R_fcall1 = lang2(preFn, grob));
+  PROTECT(updatedgrob = eval(R_fcall1, R_gridEvalEnv));
+  /*
+   * The call to preDraw may have pushed viewports and/or
+   * enforced gpar settings, SO we need to re-establish the
+   * current viewport and gpar settings before evaluating the
+   * width unit.
+   *
+   * NOTE:  we are really relying on the grid state to be coherent
+   * when we do stuff like this (i.e., not to have changed since
+   * we started evaluating the unit [other than the changes we may
+   * have deliberately made above by calling preDraw]).  In other
+   * words we are relying on no other drawing occurring at the
+   * same time as we are doing this evaluation.  In other other
+   * words, we are relying on there being only ONE process
+   * (i.e., NOT multi-threaded).
+   */
+  currentvp = gridStateElement(dd, GSS_VP);
+  currentgp = gridStateElement(dd, GSS_GPAR);
+  getViewportTransform(currentvp, dd,
+                       &vpWidthCM, &vpHeightCM,
+                       transform, &rotationAngle);
+  fillViewportContextFromViewport(currentvp, &vpc);
+  /* Call whatever(grob)
+   * to get the unit representing the x/y/width/height
+   */
+  switch (evalType) {
+  case 0:
+  case 1:
     /*
-     * Restore the saved gpar state and grob
+     * When evaluating grobX/grobY, the value of the unit
+     * is an angle that gets passed to xDetails/yDetails
      */
-    setGridStateElement(dd, GSS_GPAR, savedgpar);
-    setGridStateElement(dd, GSS_CURRGROB, savedgrob);
-    if (protectedGrob)
-	UNPROTECT(3);
-    switch(evalType) {
-    case 0:
-    case 1:
-	UNPROTECT(14);
-	break;
-    case 2:
-    case 3:
-    case 4:
-    case 5:
-	UNPROTECT(10);
+  {
+    SEXP val;
+    PROTECT(val = ScalarReal(value));
+    PROTECT(R_fcall2x = lang3(evalFnx, updatedgrob, val));
+    PROTECT(unitx = eval(R_fcall2x, R_gridEvalEnv));
+    PROTECT(R_fcall2y = lang3(evalFny, updatedgrob, val));
+    PROTECT(unity = eval(R_fcall2y, R_gridEvalEnv));
+  }
+    break;
+  case 2:
+    PROTECT(R_fcall2x = lang2(evalFnx, updatedgrob));
+    PROTECT(unitx = eval(R_fcall2x, R_gridEvalEnv));
+    break;
+  case 3:
+  case 4:
+  case 5:
+    PROTECT(R_fcall2y = lang2(evalFny, updatedgrob));
+    PROTECT(unity = eval(R_fcall2y, R_gridEvalEnv));
+    break;
+  }
+  /*
+   * Transform the unit
+   * NOTE:  We transform into INCHES so can produce final answer in terms
+   * of NPC for original context
+   */
+  /* Special case for "null" units
+   */
+  gcontextFromgpar(currentgp, 0, &gc, dd);
+  switch(evalType) {
+  case 0:
+  case 1:
+    if (evalType && pureNullUnit(unity, 0, dd)) {
+      result = evaluateNullUnit(pureNullUnitValue(unity, 0),
+                                vpWidthCM,
+                                nullLMode, nullAMode);
+    } else if (pureNullUnit(unitx, 0, dd)) {
+      result = evaluateNullUnit(pureNullUnitValue(unitx, 0),
+                                vpWidthCM,
+                                nullLMode, nullAMode);
+    } else {
+      /*
+       * Transform to device (to allow for viewports in grob)
+       * then adjust relative to current viewport.
+       */
+      double xx, yy;
+      LLocation lin, lout;
+      LTransform invt;
+      invTransform(savedTransform, invt);
+      transformLocn(unitx, unity, 0,
+                    vpc, &gc,
+                    vpWidthCM, vpHeightCM, dd,
+                    transform, &xx, &yy);
+      location(xx, yy, lin);
+      trans(lin, invt, lout);
+      xx = locationX(lout);
+      yy = locationY(lout);
+      if (evalType)
+        result = yy;
+      else
+        result = xx;
     }
-    /* Return the transformed width
-     */
-    /*
-     * If there is an error or user-interrupt in the above
-     * evaluation, dd->recordGraphics is set to TRUE
-     * on all graphics devices (see GEonExit(); called in errors.c)
-     */
-    dd->recordGraphics = record;
-    return result;
+    break;
+  case 2:
+    if (pureNullUnit(unitx, 0, dd)) {
+      result = evaluateNullUnit(pureNullUnitValue(unitx, 0),
+                                vpWidthCM,
+                                nullLMode, nullAMode);
+    } else {
+      result = transformWidthtoINCHES(unitx, 0, vpc, &gc,
+                                      vpWidthCM, vpHeightCM,
+                                      dd);
+    }
+    break;
+  case 3:
+  case 4:
+  case 5:
+    if (pureNullUnit(unity, 0, dd)) {
+      result = evaluateNullUnit(pureNullUnitValue(unity, 0),
+                                vpWidthCM,
+                                nullLMode, nullAMode);
+    } else {
+      result = transformHeighttoINCHES(unity, 0, vpc, &gc,
+                                       vpWidthCM, vpHeightCM,
+                                       dd);
+    }
+    break;
+  }
+  /* Call postDraw(grob)
+   */
+  PROTECT(R_fcall3 = lang2(postFn, updatedgrob));
+  eval(R_fcall3, R_gridEvalEnv);
+  /*
+   * Restore the saved gpar state and grob
+   */
+  setGridStateElement(dd, GSS_GPAR, savedgpar);
+  setGridStateElement(dd, GSS_CURRGROB, savedgrob);
+  if (protectedGrob)
+    UNPROTECT(3);
+  switch(evalType) {
+  case 0:
+  case 1:
+    UNPROTECT(14);
+    break;
+  case 2:
+  case 3:
+  case 4:
+  case 5:
+    UNPROTECT(10);
+  }
+  /* Return the transformed width
+   */
+  /*
+   * If there is an error or user-interrupt in the above
+   * evaluation, dd->recordGraphics is set to TRUE
+   * on all graphics devices (see GEonExit(); called in errors.c)
+   */
+  dd->recordGraphics = record;
+  return result;
 }
 
 double evaluateGrobXUnit(double value, SEXP grob,
-			 double vpheightCM, double vpwidthCM,
-			 int nullLMode, int nullAMode,
-			 pGEDevDesc dd)
+                         double vpheightCM, double vpwidthCM,
+                         int nullLMode, int nullAMode,
+                         pGEDevDesc dd)
 {
-    return evaluateGrobUnit(value, grob, vpheightCM, vpwidthCM,
-			    nullLMode, nullAMode, 0, dd);
+  return evaluateGrobUnit(value, grob, vpheightCM, vpwidthCM,
+                          nullLMode, nullAMode, 0, dd);
 }
 
 double evaluateGrobYUnit(double value, SEXP grob,
-			 double vpheightCM, double vpwidthCM,
-			 int nullLMode, int nullAMode,
-			 pGEDevDesc dd)
+                         double vpheightCM, double vpwidthCM,
+                         int nullLMode, int nullAMode,
+                         pGEDevDesc dd)
 {
-    return evaluateGrobUnit(value, grob, vpheightCM, vpwidthCM,
-			    nullLMode, nullAMode, 1, dd);
+  return evaluateGrobUnit(value, grob, vpheightCM, vpwidthCM,
+                          nullLMode, nullAMode, 1, dd);
 }
 
 double evaluateGrobWidthUnit(SEXP grob,
-			     double vpheightCM, double vpwidthCM,
-			     int nullLMode, int nullAMode,
-			     pGEDevDesc dd)
+                             double vpheightCM, double vpwidthCM,
+                             int nullLMode, int nullAMode,
+                             pGEDevDesc dd)
 {
-    return evaluateGrobUnit(1, grob, vpheightCM, vpwidthCM,
-			    nullLMode, nullAMode, 2, dd);
+  return evaluateGrobUnit(1, grob, vpheightCM, vpwidthCM,
+                          nullLMode, nullAMode, 2, dd);
 }
 
 double evaluateGrobHeightUnit(SEXP grob,
-			     double vpheightCM, double vpwidthCM,
-			     int nullLMode, int nullAMode,
-			     pGEDevDesc dd)
+                              double vpheightCM, double vpwidthCM,
+                              int nullLMode, int nullAMode,
+                              pGEDevDesc dd)
 {
-    return evaluateGrobUnit(1, grob, vpheightCM, vpwidthCM,
-			    nullLMode, nullAMode, 3, dd);
+  return evaluateGrobUnit(1, grob, vpheightCM, vpwidthCM,
+                          nullLMode, nullAMode, 3, dd);
 }
 
 double evaluateGrobAscentUnit(SEXP grob,
@@ -569,8 +569,8 @@ double evaluateGrobAscentUnit(SEXP grob,
                               int nullLMode, int nullAMode,
                               pGEDevDesc dd)
 {
-    return evaluateGrobUnit(1, grob, vpheightCM, vpwidthCM,
-			    nullLMode, nullAMode, 4, dd);
+  return evaluateGrobUnit(1, grob, vpheightCM, vpwidthCM,
+                          nullLMode, nullAMode, 4, dd);
 }
 
 double evaluateGrobDescentUnit(SEXP grob,
@@ -578,8 +578,8 @@ double evaluateGrobDescentUnit(SEXP grob,
                                int nullLMode, int nullAMode,
                                pGEDevDesc dd)
 {
-    return evaluateGrobUnit(1, grob, vpheightCM, vpwidthCM,
-			    nullLMode, nullAMode, 5, dd);
+  return evaluateGrobUnit(1, grob, vpheightCM, vpwidthCM,
+                          nullLMode, nullAMode, 5, dd);
 }
 
 /**************************
@@ -595,22 +595,22 @@ double evaluateGrobDescentUnit(SEXP grob,
  * Otherwise it is an INCHES value
  */
 double transform(double value, int unit, SEXP data,
-		 double scalemin, double scalemax,
-		 const pGEcontext gc,
-		 double thisCM, double otherCM,
-		 int nullLMode, int nullAMode, pGEDevDesc dd)
+                 double scalemin, double scalemax,
+                 const pGEcontext gc,
+                 double thisCM, double otherCM,
+                 int nullLMode, int nullAMode, pGEDevDesc dd)
 {
-    double asc, dsc, wid;
-    double result = value;
-    switch (unit) {
-    case L_NPC:
-	result = (result * thisCM)/2.54; /* 2.54 cm per inch */
-	break;
-    case L_CM:
-	result = result/2.54;
-	break;
-    case L_INCHES:
-	break;
+  double asc, dsc, wid;
+  double result = value;
+  switch (unit) {
+  case L_NPC:
+    result = (result * thisCM)/2.54; /* 2.54 cm per inch */
+break;
+  case L_CM:
+    result = result/2.54;
+    break;
+  case L_INCHES:
+    break;
     /* FIXME:  The following two assume that the pointsize specified
      * by the user is actually the pointsize provided by the
      * device.  This is NOT a safe assumption
@@ -619,244 +619,244 @@ double transform(double value, int unit, SEXP data,
      * xNDCPerLine are up-to-date, THEN call GStrHeight("M")
      * or somesuch.
      */
-    case L_CHAR:
-    case L_MYCHAR:  /* FIXME: Remove this when I can */
-	result = (result * gc->ps * gc->cex)/72; /* 72 points per inch */
-	break;
-    case L_LINES:
-    case L_MYLINES: /* FIXME: Remove this when I can */
-	result = (result * gc->ps * gc->cex * gc->lineheight)/72;
-	break;
-    case L_SNPC:
-	if (thisCM <= otherCM)
-	    result = (result * thisCM)/2.54;
-	else
-	    result = (result * otherCM)/2.54;
-	break;
-    case L_MM:
-	result = (result/10)/2.54;
-	break;
-	/* Maybe an opportunity for some constants below here (!)
-	 */
-    case L_POINTS:
-	result = result/72.27;
-	break;
-    case L_PICAS:
-	result = (result*12)/72.27;
-	break;
-    case L_BIGPOINTS:
-	result = result/72;
-	break;
-    case L_DIDA:
-	result = result/1157*1238/72.27;
-	break;
-    case L_CICERO:
-	result = result*12/1157*1238/72.27;
-	break;
-    case L_SCALEDPOINTS:
-	result = result/65536/72.27;
-	break;
-    case L_STRINGWIDTH:
-    case L_MYSTRINGWIDTH: /* FIXME: Remove this when I can */
-	if (isExpression(data))
-	    result = result*
-		fromDeviceWidth(GEExpressionWidth(VECTOR_ELT(data, 0), gc, dd),
-				GE_INCHES, dd);
-	else
-	    result = result*
-		fromDeviceWidth(GEStrWidth(CHAR(STRING_ELT(data, 0)),
-					   getCharCE(STRING_ELT(data, 0)),
-					   gc, dd),
-				GE_INCHES, dd);
-	break;
-    case L_STRINGHEIGHT:
-    case L_MYSTRINGHEIGHT: /* FIXME: Remove this when I can */
-	if (isExpression(data))
-	    result = result*
-		fromDeviceHeight(GEExpressionHeight(VECTOR_ELT(data, 0),
-						    gc, dd),
-				 GE_INCHES, dd);
-	else
-	    /* FIXME: what encoding is this? */
-	    result = result*
-		fromDeviceHeight(GEStrHeight(CHAR(STRING_ELT(data, 0)), -1,
-					     gc, dd),
-				 GE_INCHES, dd);
-	break;
-    case L_STRINGASCENT:
-	if (isExpression(data))
-            GEExpressionMetric(VECTOR_ELT(data, 0), gc,
-                               &asc, &dsc, &wid,
-                               dd);
-	else
-            GEStrMetric(CHAR(STRING_ELT(data, 0)),
-                        getCharCE(STRING_ELT(data, 0)), gc,
-                        &asc, &dsc, &wid,
-                        dd);
-        result = result*fromDeviceHeight(asc, GE_INCHES, dd);
-	break;
-    case L_STRINGDESCENT:
-	if (isExpression(data))
-            GEExpressionMetric(VECTOR_ELT(data, 0), gc,
-                               &asc, &dsc, &wid,
-                               dd);
-	else
-            GEStrMetric(CHAR(STRING_ELT(data, 0)),
-                        getCharCE(STRING_ELT(data, 0)), gc,
-                        &asc, &dsc, &wid,
-                        dd);
-        result = result*fromDeviceHeight(dsc, GE_INCHES, dd);
-	break;
-    case L_GROBX:
-	result = evaluateGrobXUnit(value, data, thisCM, otherCM,
-				   nullLMode, nullAMode, dd);
-	break;
-    case L_GROBY:
-	result = evaluateGrobYUnit(value, data, otherCM, thisCM,
-				   nullLMode, nullAMode, dd);
-	break;
-    case L_GROBWIDTH:
-	result = value*evaluateGrobWidthUnit(data, thisCM, otherCM,
-					     nullLMode, nullAMode, dd);
-	break;
-    case L_GROBHEIGHT:
-	result = value*evaluateGrobHeightUnit(data, otherCM, thisCM,
-					      nullLMode, nullAMode, dd);
-	break;
-    case L_GROBASCENT:
-	result = value*evaluateGrobAscentUnit(data, otherCM, thisCM,
-					      nullLMode, nullAMode, dd);
-	break;
-    case L_GROBDESCENT:
-	result = value*evaluateGrobDescentUnit(data, otherCM, thisCM,
-                                               nullLMode, nullAMode, dd);
-	break;
-    case L_NULL:
-	result = evaluateNullUnit(result, thisCM, nullLMode, nullAMode);
-	break;
-    default:
-	error(_("invalid unit or unit not yet implemented"));
-    }
-    /*
-     * For physical units, scale the result by GSS_SCALE (a "zoom" factor)
+  case L_CHAR:
+  case L_MYCHAR:  /* FIXME: Remove this when I can */
+    result = (result * gc->ps * gc->cex)/72; /* 72 points per inch */
+    break;
+  case L_LINES:
+  case L_MYLINES: /* FIXME: Remove this when I can */
+    result = (result * gc->ps * gc->cex * gc->lineheight)/72;
+    break;
+  case L_SNPC:
+    if (thisCM <= otherCM)
+      result = (result * thisCM)/2.54;
+    else
+      result = (result * otherCM)/2.54;
+    break;
+  case L_MM:
+    result = (result/10)/2.54;
+    break;
+    /* Maybe an opportunity for some constants below here (!)
      */
-    switch (unit) {
-    case L_INCHES:
-    case L_CM:
-    case L_MM:
-    case L_POINTS:
-    case L_PICAS:
-    case L_BIGPOINTS:
-    case L_DIDA:
-    case L_CICERO:
-    case L_SCALEDPOINTS:
-      result = result * REAL(gridStateElement(dd, GSS_SCALE))[0];
-      break;
-    default:
-      /*
-       * No need to scale relative coordinates (NPC, NATIVE, NULL)
-       * CHAR and LINES already scaled because of scaling in gcontextFromGPar()
-       * Ditto STRINGWIDTH/HEIGHT
-       * GROBWIDTH/HEIGHT recurse into here so scaling already done
-       */
-      break;
-    }
-    return result;
+  case L_POINTS:
+    result = result/72.27;
+    break;
+  case L_PICAS:
+    result = (result*12)/72.27;
+    break;
+  case L_BIGPOINTS:
+    result = result/72;
+    break;
+  case L_DIDA:
+    result = result/1157*1238/72.27;
+    break;
+  case L_CICERO:
+    result = result*12/1157*1238/72.27;
+    break;
+  case L_SCALEDPOINTS:
+    result = result/65536/72.27;
+    break;
+  case L_STRINGWIDTH:
+  case L_MYSTRINGWIDTH: /* FIXME: Remove this when I can */
+    if (isExpression(data))
+      result = result*
+        fromDeviceWidth(GEExpressionWidth(VECTOR_ELT(data, 0), gc, dd),
+                        GE_INCHES, dd);
+    else
+      result = result*
+        fromDeviceWidth(GEStrWidth(CHAR(STRING_ELT(data, 0)),
+                                   getCharCE(STRING_ELT(data, 0)),
+                                   gc, dd),
+                                   GE_INCHES, dd);
+    break;
+  case L_STRINGHEIGHT:
+  case L_MYSTRINGHEIGHT: /* FIXME: Remove this when I can */
+    if (isExpression(data))
+      result = result*
+        fromDeviceHeight(GEExpressionHeight(VECTOR_ELT(data, 0),
+                                            gc, dd),
+                                            GE_INCHES, dd);
+    else
+      /* FIXME: what encoding is this? */
+      result = result*
+      fromDeviceHeight(GEStrHeight(CHAR(STRING_ELT(data, 0)), -1,
+                                   gc, dd),
+                                   GE_INCHES, dd);
+    break;
+  case L_STRINGASCENT:
+    if (isExpression(data))
+      GEExpressionMetric(VECTOR_ELT(data, 0), gc,
+                         &asc, &dsc, &wid,
+                         dd);
+    else
+      GEStrMetric(CHAR(STRING_ELT(data, 0)),
+                  getCharCE(STRING_ELT(data, 0)), gc,
+                  &asc, &dsc, &wid,
+                  dd);
+    result = result*fromDeviceHeight(asc, GE_INCHES, dd);
+    break;
+  case L_STRINGDESCENT:
+    if (isExpression(data))
+      GEExpressionMetric(VECTOR_ELT(data, 0), gc,
+                         &asc, &dsc, &wid,
+                         dd);
+    else
+      GEStrMetric(CHAR(STRING_ELT(data, 0)),
+                  getCharCE(STRING_ELT(data, 0)), gc,
+                  &asc, &dsc, &wid,
+                  dd);
+    result = result*fromDeviceHeight(dsc, GE_INCHES, dd);
+    break;
+  case L_GROBX:
+    result = evaluateGrobXUnit(value, data, thisCM, otherCM,
+                               nullLMode, nullAMode, dd);
+    break;
+  case L_GROBY:
+    result = evaluateGrobYUnit(value, data, otherCM, thisCM,
+                               nullLMode, nullAMode, dd);
+    break;
+  case L_GROBWIDTH:
+    result = value*evaluateGrobWidthUnit(data, thisCM, otherCM,
+                                         nullLMode, nullAMode, dd);
+    break;
+  case L_GROBHEIGHT:
+    result = value*evaluateGrobHeightUnit(data, otherCM, thisCM,
+                                          nullLMode, nullAMode, dd);
+    break;
+  case L_GROBASCENT:
+    result = value*evaluateGrobAscentUnit(data, otherCM, thisCM,
+                                          nullLMode, nullAMode, dd);
+    break;
+  case L_GROBDESCENT:
+    result = value*evaluateGrobDescentUnit(data, otherCM, thisCM,
+                                           nullLMode, nullAMode, dd);
+    break;
+  case L_NULL:
+    result = evaluateNullUnit(result, thisCM, nullLMode, nullAMode);
+    break;
+  default:
+    error(_("invalid unit or unit not yet implemented"));
+  }
+  /*
+   * For physical units, scale the result by GSS_SCALE (a "zoom" factor)
+   */
+  switch (unit) {
+  case L_INCHES:
+  case L_CM:
+  case L_MM:
+  case L_POINTS:
+  case L_PICAS:
+  case L_BIGPOINTS:
+  case L_DIDA:
+  case L_CICERO:
+  case L_SCALEDPOINTS:
+    result = result * REAL(gridStateElement(dd, GSS_SCALE))[0];
+    break;
+  default:
+    /*
+     * No need to scale relative coordinates (NPC, NATIVE, NULL)
+     * CHAR and LINES already scaled because of scaling in gcontextFromGPar()
+     * Ditto STRINGWIDTH/HEIGHT
+     * GROBWIDTH/HEIGHT recurse into here so scaling already done
+     */
+    break;
+  }
+  return result;
 }
 
 /* FIXME:  scales are only linear at the moment */
 double transformLocation(double location, int unit, SEXP data,
-			 double scalemin, double scalemax,
-			 const pGEcontext gc,
-			 double thisCM, double otherCM,
-			 int nullLMode, int nullAMode, pGEDevDesc dd)
+                         double scalemin, double scalemax,
+                         const pGEcontext gc,
+                         double thisCM, double otherCM,
+                         int nullLMode, int nullAMode, pGEDevDesc dd)
 {
-    double result = location;
-    switch (unit) {
-    case L_NATIVE:
-	/* It is invalid to create a viewport with identical limits on scale
-         * so we are protected from divide-by-zero
-         */
-	result = ((result - scalemin)/(scalemax - scalemin))*thisCM/2.54;
-	break;
-    default:
-	result = transform(location, unit, data, scalemin, scalemax,
-			   gc, thisCM, otherCM, nullLMode, nullAMode, dd);
-    }
-    return result;
+  double result = location;
+  switch (unit) {
+  case L_NATIVE:
+    /* It is invalid to create a viewport with identical limits on scale
+     * so we are protected from divide-by-zero
+     */
+    result = ((result - scalemin)/(scalemax - scalemin))*thisCM/2.54;
+    break;
+  default:
+    result = transform(location, unit, data, scalemin, scalemax,
+                       gc, thisCM, otherCM, nullLMode, nullAMode, dd);
+  }
+  return result;
 }
 
 double transformX(SEXP x, int index,
-		  LViewportContext vpc,
-		  const pGEcontext gc,
-		  double widthCM, double heightCM,
-		  int nullLMode, int nullAMode, pGEDevDesc dd)
+                  LViewportContext vpc,
+                  const pGEcontext gc,
+                  double widthCM, double heightCM,
+                  int nullLMode, int nullAMode, pGEDevDesc dd)
 {
-    double result;
-    int i, n, unit = unitUnit(x, index);
-    double value = unitValue(x, index);
-    SEXP data = unitData(x, index);
-    if (unit == L_SUM) {
-      n = unitLength(data);
-      result = 0.0;
-      for (i = 0; i < n; i++) {
-        result += transformX(data, i, vpc, gc,
-                             widthCM, heightCM,
-                             nullLMode, L_summing, dd);
-      }
-      result *= value;
-    } else if (unit == L_MIN) {
-      n = unitLength(data);
-      double temp = DBL_MAX;
-      result = transformX(data, 0, vpc, gc,
-                          widthCM, heightCM,
-                          nullLMode, L_minimising,
-                          dd);
-      for (i = 1; i < n; i++) {
-        temp = transformX(data, i, vpc, gc,
-                          widthCM, heightCM,
-                          nullLMode, L_minimising,
-                          dd);
-        if (temp < result) result = temp;
-      }
-      result *= value;
-    } else if (unit == L_MAX) {
-      n = unitLength(data);
-      double temp = DBL_MIN;
-      result = transformX(data, 0, vpc, gc,
-                          widthCM, heightCM,
-                          nullLMode, L_maximising,
-                          dd);
-      for (i = 1; i < n; i++) {
-        temp = transformX(data, i, vpc, gc,
-                          widthCM, heightCM,
-                          nullLMode, L_maximising,
-                          dd);
-        if (temp > result)
-          result = temp;
-      }
-      result *= value;
-    } else {
-      int nullamode;
-      if (nullAMode == 0)
-        nullamode = L_plain;
-      else
-        nullamode = nullAMode;
-      result = transformLocation(value, unit, data,
-                                 vpc.xscalemin, vpc.xscalemax, gc,
-                                 widthCM, heightCM,
-                                 nullLMode,
-                                 nullamode,
-                                 dd);
+  double result;
+  int i, n, unit = unitUnit(x, index);
+  double value = unitValue(x, index);
+  SEXP data = unitData(x, index);
+  if (unit == L_SUM) {
+    n = unitLength(data);
+    result = 0.0;
+    for (i = 0; i < n; i++) {
+      result += transformX(data, i, vpc, gc,
+                           widthCM, heightCM,
+                           nullLMode, L_summing, dd);
     }
-    return result;
+    result *= value;
+  } else if (unit == L_MIN) {
+    n = unitLength(data);
+    double temp = DBL_MAX;
+    result = transformX(data, 0, vpc, gc,
+                        widthCM, heightCM,
+                        nullLMode, L_minimising,
+                        dd);
+    for (i = 1; i < n; i++) {
+      temp = transformX(data, i, vpc, gc,
+                        widthCM, heightCM,
+                        nullLMode, L_minimising,
+                        dd);
+      if (temp < result) result = temp;
+    }
+    result *= value;
+  } else if (unit == L_MAX) {
+    n = unitLength(data);
+    double temp = DBL_MIN;
+    result = transformX(data, 0, vpc, gc,
+                        widthCM, heightCM,
+                        nullLMode, L_maximising,
+                        dd);
+    for (i = 1; i < n; i++) {
+      temp = transformX(data, i, vpc, gc,
+                        widthCM, heightCM,
+                        nullLMode, L_maximising,
+                        dd);
+      if (temp > result)
+        result = temp;
+    }
+    result *= value;
+  } else {
+    int nullamode;
+    if (nullAMode == 0)
+      nullamode = L_plain;
+    else
+      nullamode = nullAMode;
+    result = transformLocation(value, unit, data,
+                               vpc.xscalemin, vpc.xscalemax, gc,
+                               widthCM, heightCM,
+                               nullLMode,
+                               nullamode,
+                               dd);
+  }
+  return result;
 }
 
 double transformY(SEXP y, int index,
-		  LViewportContext vpc,
-		  const pGEcontext gc,
-		  double widthCM, double heightCM,
-		  int nullLMode, int nullAMode, pGEDevDesc dd)
+                  LViewportContext vpc,
+                  const pGEcontext gc,
+                  double widthCM, double heightCM,
+                  int nullLMode, int nullAMode, pGEDevDesc dd)
 {
   double result;
   int i, n, unit = unitUnit(y, index);
@@ -919,31 +919,31 @@ double transformY(SEXP y, int index,
 }
 
 double transformDimension(double dim, int unit, SEXP data,
-			  double scalemin, double scalemax,
-			  const pGEcontext gc,
-			  double thisCM, double otherCM,
-			  int nullLMode, int nullAMode,
-			  pGEDevDesc dd)
+                          double scalemin, double scalemax,
+                          const pGEcontext gc,
+                          double thisCM, double otherCM,
+                          int nullLMode, int nullAMode,
+                          pGEDevDesc dd)
 {
-    double result = dim;
-    switch (unit) {
-    case L_NATIVE:
-	/* It is invalid to create a viewport with identical limits on scale
-         * so we are protected from divide-by-zero
-         */
-	result = ((dim)/(scalemax - scalemin))*thisCM/2.54;
-	break;
-    default:
-	result = transform(dim, unit, data, scalemin, scalemax, gc,
-			   thisCM, otherCM, nullLMode, nullAMode, dd);
-    }
-    return result;
+  double result = dim;
+  switch (unit) {
+  case L_NATIVE:
+    /* It is invalid to create a viewport with identical limits on scale
+     * so we are protected from divide-by-zero
+     */
+    result = ((dim)/(scalemax - scalemin))*thisCM/2.54;
+    break;
+  default:
+    result = transform(dim, unit, data, scalemin, scalemax, gc,
+                       thisCM, otherCM, nullLMode, nullAMode, dd);
+  }
+  return result;
 }
 double transformWidth(SEXP width, int index,
-		      LViewportContext vpc,
-		      const pGEcontext gc,
-		      double widthCM, double heightCM,
-		      int nullLMode, int nullAMode, pGEDevDesc dd)
+                      LViewportContext vpc,
+                      const pGEcontext gc,
+                      double widthCM, double heightCM,
+                      int nullLMode, int nullAMode, pGEDevDesc dd)
 {
   double result;
   int i, n, unit = unitUnit(width, index);
@@ -954,22 +954,22 @@ double transformWidth(SEXP width, int index,
     result = 0.0;
     for (i = 0; i < n; i++) {
       result += transformWidth(data, i, vpc, gc,
-                           widthCM, heightCM,
-                           nullLMode, L_summing, dd);
+                               widthCM, heightCM,
+                               nullLMode, L_summing, dd);
     }
     result *= value;
   } else if (unit == L_MIN) {
     n = unitLength(data);
     double temp = DBL_MAX;
     result = transformWidth(data, 0, vpc, gc,
-                        widthCM, heightCM,
-                        nullLMode, L_minimising,
-                        dd);
+                            widthCM, heightCM,
+                            nullLMode, L_minimising,
+                            dd);
     for (i = 1; i < n; i++) {
       temp = transformWidth(data, i, vpc, gc,
-                        widthCM, heightCM,
-                        nullLMode, L_minimising,
-                        dd);
+                            widthCM, heightCM,
+                            nullLMode, L_minimising,
+                            dd);
       if (temp < result) result = temp;
     }
     result *= value;
@@ -977,14 +977,14 @@ double transformWidth(SEXP width, int index,
     n = unitLength(data);
     double temp = DBL_MIN;
     result = transformWidth(data, 0, vpc, gc,
-                        widthCM, heightCM,
-                        nullLMode, L_maximising,
-                        dd);
+                            widthCM, heightCM,
+                            nullLMode, L_maximising,
+                            dd);
     for (i = 1; i < n; i++) {
       temp = transformWidth(data, i, vpc, gc,
-                        widthCM, heightCM,
-                        nullLMode, L_maximising,
-                        dd);
+                            widthCM, heightCM,
+                            nullLMode, L_maximising,
+                            dd);
       if (temp > result)
         result = temp;
     }
@@ -1006,10 +1006,10 @@ double transformWidth(SEXP width, int index,
 }
 
 double transformHeight(SEXP height, int index,
-		       LViewportContext vpc,
-		       const pGEcontext gc,
-		       double widthCM, double heightCM,
-		       int nullLMode, int nullAMode, pGEDevDesc dd)
+                       LViewportContext vpc,
+                       const pGEcontext gc,
+                       double widthCM, double heightCM,
+                       int nullLMode, int nullAMode, pGEDevDesc dd)
 {
   double result;
   int i, n, unit = unitUnit(height, index);
@@ -1020,22 +1020,22 @@ double transformHeight(SEXP height, int index,
     result = 0.0;
     for (i = 0; i < n; i++) {
       result += transformHeight(data, i, vpc, gc,
-                               widthCM, heightCM,
-                               nullLMode, L_summing, dd);
+                                widthCM, heightCM,
+                                nullLMode, L_summing, dd);
     }
     result *= value;
   } else if (unit == L_MIN) {
     n = unitLength(data);
     double temp = DBL_MAX;
     result = transformHeight(data, 0, vpc, gc,
-                            widthCM, heightCM,
-                            nullLMode, L_minimising,
-                            dd);
+                             widthCM, heightCM,
+                             nullLMode, L_minimising,
+                             dd);
     for (i = 1; i < n; i++) {
       temp = transformHeight(data, i, vpc, gc,
-                            widthCM, heightCM,
-                            nullLMode, L_minimising,
-                            dd);
+                             widthCM, heightCM,
+                             nullLMode, L_minimising,
+                             dd);
       if (temp < result) result = temp;
     }
     result *= value;
@@ -1043,14 +1043,14 @@ double transformHeight(SEXP height, int index,
     n = unitLength(data);
     double temp = DBL_MIN;
     result = transformHeight(data, 0, vpc, gc,
-                            widthCM, heightCM,
-                            nullLMode, L_maximising,
-                            dd);
+                             widthCM, heightCM,
+                             nullLMode, L_maximising,
+                             dd);
     for (i = 1; i < n; i++) {
       temp = transformHeight(data, i, vpc, gc,
-                            widthCM, heightCM,
-                            nullLMode, L_maximising,
-                            dd);
+                             widthCM, heightCM,
+                             nullLMode, L_maximising,
+                             dd);
       if (temp > result)
         result = temp;
     }
@@ -1097,86 +1097,86 @@ double transformHeight(SEXP height, int index,
  * the parent to INCHES relative to the device.
  */
 double transformXtoINCHES(SEXP x, int index,
-			  LViewportContext vpc,
-			  const pGEcontext gc,
-			  double widthCM, double heightCM,
-			  pGEDevDesc dd)
+                          LViewportContext vpc,
+                          const pGEcontext gc,
+                          double widthCM, double heightCM,
+                          pGEDevDesc dd)
 {
-    return transformX(x, index, vpc, gc,
-		      widthCM, heightCM, 0, 0, dd);
+  return transformX(x, index, vpc, gc,
+                    widthCM, heightCM, 0, 0, dd);
 }
 
 double transformYtoINCHES(SEXP y, int index,
-			  LViewportContext vpc,
-			  const pGEcontext gc,
-			  double widthCM, double heightCM,
-			  pGEDevDesc dd)
+                          LViewportContext vpc,
+                          const pGEcontext gc,
+                          double widthCM, double heightCM,
+                          pGEDevDesc dd)
 {
-    return transformY(y, index, vpc, gc,
-		      widthCM, heightCM, 0, 0, dd);
+  return transformY(y, index, vpc, gc,
+                    widthCM, heightCM, 0, 0, dd);
 }
 
 void transformLocn(SEXP x, SEXP y, int index,
-		   LViewportContext vpc,
-		   const pGEcontext gc,
-		   double widthCM, double heightCM,
-		   pGEDevDesc dd,
-		   LTransform t,
-		   double *xx, double *yy)
+                   LViewportContext vpc,
+                   const pGEcontext gc,
+                   double widthCM, double heightCM,
+                   pGEDevDesc dd,
+                   LTransform t,
+                   double *xx, double *yy)
 {
-    LLocation lin, lout;
-    /* x and y are unit objects (i.e., values in any old coordinate
-     * system) so the first step is to convert them both to CM
-     */
-    *xx = transformXtoINCHES(x, index, vpc, gc,
-			     widthCM, heightCM, dd);
-    *yy = transformYtoINCHES(y, index, vpc, gc,
-			     widthCM, heightCM, dd);
-    location(*xx, *yy, lin);
-    trans(lin, t, lout);
-    *xx = locationX(lout);
-    *yy = locationY(lout);
+  LLocation lin, lout;
+  /* x and y are unit objects (i.e., values in any old coordinate
+   * system) so the first step is to convert them both to CM
+   */
+  *xx = transformXtoINCHES(x, index, vpc, gc,
+                           widthCM, heightCM, dd);
+  *yy = transformYtoINCHES(y, index, vpc, gc,
+                           widthCM, heightCM, dd);
+  location(*xx, *yy, lin);
+  trans(lin, t, lout);
+  *xx = locationX(lout);
+  *yy = locationY(lout);
 }
 
 double transformWidthtoINCHES(SEXP w, int index,
-			      LViewportContext vpc,
-			      const pGEcontext gc,
-			      double widthCM, double heightCM,
-			      pGEDevDesc dd)
+                              LViewportContext vpc,
+                              const pGEcontext gc,
+                              double widthCM, double heightCM,
+                              pGEDevDesc dd)
 {
-    return transformWidth(w, index, vpc, gc,
-			  widthCM, heightCM, 0, 0, dd);
+  return transformWidth(w, index, vpc, gc,
+                        widthCM, heightCM, 0, 0, dd);
 }
 
 double transformHeighttoINCHES(SEXP h, int index,
-			       LViewportContext vpc,
-			       const pGEcontext gc,
-			       double widthCM, double heightCM,
-			       pGEDevDesc dd)
+                               LViewportContext vpc,
+                               const pGEcontext gc,
+                               double widthCM, double heightCM,
+                               pGEDevDesc dd)
 {
-    return transformHeight(h, index, vpc, gc,
-			   widthCM, heightCM, 0, 0, dd);
+  return transformHeight(h, index, vpc, gc,
+                         widthCM, heightCM, 0, 0, dd);
 }
 
 void transformDimn(SEXP w, SEXP h, int index,
-		   LViewportContext vpc,
-		   const pGEcontext gc,
-		   double widthCM, double heightCM,
-		   pGEDevDesc dd,
-		   double rotationAngle,
-		   double *ww, double *hh)
+                   LViewportContext vpc,
+                   const pGEcontext gc,
+                   double widthCM, double heightCM,
+                   pGEDevDesc dd,
+                   double rotationAngle,
+                   double *ww, double *hh)
 {
-    LLocation din, dout;
-    LTransform r;
-    *ww = transformWidthtoINCHES(w, index, vpc, gc,
-				 widthCM, heightCM, dd);
-    *hh = transformHeighttoINCHES(h, index, vpc, gc,
-				  widthCM, heightCM, dd);
-    location(*ww, *hh, din);
-    rotation(rotationAngle, r);
-    trans(din, r, dout);
-    *ww = locationX(dout);
-    *hh = locationY(dout);
+  LLocation din, dout;
+  LTransform r;
+  *ww = transformWidthtoINCHES(w, index, vpc, gc,
+                               widthCM, heightCM, dd);
+  *hh = transformHeighttoINCHES(h, index, vpc, gc,
+                                widthCM, heightCM, dd);
+  location(*ww, *hh, din);
+  rotation(rotationAngle, r);
+  trans(din, r, dout);
+  *ww = locationX(dout);
+  *hh = locationY(dout);
 }
 
 /*
@@ -1191,23 +1191,23 @@ void transformDimn(SEXP w, SEXP h, int index,
  */
 
 double transformFromINCHES(double value, int unit,
-			   const pGEcontext gc,
-			   double thisCM, double otherCM,
-			   pGEDevDesc dd)
+                           const pGEcontext gc,
+                           double thisCM, double otherCM,
+                           pGEDevDesc dd)
 {
-    /*
-     * Convert to NPC
-     */
-    double result = value;
-    switch (unit) {
-    case L_NPC:
-	result = result/(thisCM/2.54);
-	break;
-    case L_CM:
-	result = result*2.54;
-	break;
-    case L_INCHES:
-	break;
+  /*
+   * Convert to NPC
+   */
+  double result = value;
+  switch (unit) {
+  case L_NPC:
+    result = result/(thisCM/2.54);
+    break;
+  case L_CM:
+    result = result*2.54;
+    break;
+  case L_INCHES:
+    break;
     /* FIXME:  The following two assume that the pointsize specified
      * by the user is actually the pointsize provided by the
      * device.  This is NOT a safe assumption
@@ -1216,77 +1216,77 @@ double transformFromINCHES(double value, int unit,
      * xNDCPerLine are up-to-date, THEN call GStrHeight("M")
      * or somesuch.
      */
-    case L_CHAR:
-	result = (result*72)/(gc->ps*gc->cex);
-	break;
-    case L_LINES:
-	result = (result*72)/(gc->ps*gc->cex*gc->lineheight);
-	break;
-    case L_MM:
-	result = result*2.54*10;
-	break;
-	/* Maybe an opportunity for some constants below here (!)
-	 */
-    case L_POINTS:
-	result = result*72.27;
-	break;
-    case L_PICAS:
-	result = result/12*72.27;
-	break;
-    case L_BIGPOINTS:
-	result = result*72;
-	break;
-    case L_DIDA:
-	result = result/1238*1157*72.27;
-	break;
-    case L_CICERO:
-	result = result/1238*1157*72.27/12;
-	break;
-    case L_SCALEDPOINTS:
-	result = result*65536*72.27;
-	break;
-	/*
-	 * I'm not sure the remaining ones makes any sense.
-	 * For simplicity, these are just forbidden for now.
-	 */
-    case L_SNPC:
-    case L_MYCHAR:
-    case L_MYLINES:
-    case L_STRINGWIDTH:
-    case L_MYSTRINGWIDTH:
-    case L_STRINGHEIGHT:
-    case L_MYSTRINGHEIGHT:
-    case L_GROBX:
-    case L_GROBY:
-    case L_GROBWIDTH:
-    case L_GROBHEIGHT:
-    case L_NULL:
-    default:
-	error(_("invalid unit or unit not yet implemented"));
-    }
-    /*
-     * For physical units, reverse the scale by GSS_SCALE (a "zoom" factor)
+  case L_CHAR:
+    result = (result*72)/(gc->ps*gc->cex);
+    break;
+  case L_LINES:
+    result = (result*72)/(gc->ps*gc->cex*gc->lineheight);
+    break;
+  case L_MM:
+    result = result*2.54*10;
+    break;
+    /* Maybe an opportunity for some constants below here (!)
      */
-    switch (unit) {
-    case L_INCHES:
-    case L_CM:
-    case L_MM:
-    case L_POINTS:
-    case L_PICAS:
-    case L_BIGPOINTS:
-    case L_DIDA:
-    case L_CICERO:
-    case L_SCALEDPOINTS:
-      result = result / REAL(gridStateElement(dd, GSS_SCALE))[0];
-      break;
-    default:
-      /*
-       * No need to scale relative coordinates (NPC, NATIVE, NULL)
-       * All other units forbidden anyway
-       */
-      break;
-    }
-    return result;
+  case L_POINTS:
+    result = result*72.27;
+    break;
+  case L_PICAS:
+    result = result/12*72.27;
+    break;
+  case L_BIGPOINTS:
+    result = result*72;
+    break;
+  case L_DIDA:
+    result = result/1238*1157*72.27;
+    break;
+  case L_CICERO:
+    result = result/1238*1157*72.27/12;
+    break;
+  case L_SCALEDPOINTS:
+    result = result*65536*72.27;
+    break;
+    /*
+     * I'm not sure the remaining ones makes any sense.
+     * For simplicity, these are just forbidden for now.
+     */
+  case L_SNPC:
+  case L_MYCHAR:
+  case L_MYLINES:
+  case L_STRINGWIDTH:
+  case L_MYSTRINGWIDTH:
+  case L_STRINGHEIGHT:
+  case L_MYSTRINGHEIGHT:
+  case L_GROBX:
+  case L_GROBY:
+  case L_GROBWIDTH:
+  case L_GROBHEIGHT:
+  case L_NULL:
+  default:
+    error(_("invalid unit or unit not yet implemented"));
+  }
+  /*
+   * For physical units, reverse the scale by GSS_SCALE (a "zoom" factor)
+   */
+  switch (unit) {
+  case L_INCHES:
+  case L_CM:
+  case L_MM:
+  case L_POINTS:
+  case L_PICAS:
+  case L_BIGPOINTS:
+  case L_DIDA:
+  case L_CICERO:
+  case L_SCALEDPOINTS:
+    result = result / REAL(gridStateElement(dd, GSS_SCALE))[0];
+    break;
+  default:
+    /*
+     * No need to scale relative coordinates (NPC, NATIVE, NULL)
+     * All other units forbidden anyway
+     */
+    break;
+  }
+  return result;
 }
 
 /*
@@ -1303,65 +1303,65 @@ double transformFromINCHES(double value, int unit,
  * This is probably easiest done right up in R code.
  */
 double transformXYFromINCHES(double location, int unit,
-			     double scalemin, double scalemax,
-			     const pGEcontext gc,
-			     double thisCM, double otherCM,
-			     pGEDevDesc dd)
+                             double scalemin, double scalemax,
+                             const pGEcontext gc,
+                             double thisCM, double otherCM,
+                             pGEDevDesc dd)
 {
-    double result = location;
-    /* Special case if "thisCM == 0":
-     * If converting FROM relative unit, result will already be zero
-     * so leave it there.
-     * If converting FROM absolute unit that is zero, ditto.
-     * Otherwise (converting FROM non-zero absolute unit),
-     * converting to relative unit is an error.
-     */
-    if ((unit == L_NATIVE || unit == L_NPC) &&
-        thisCM < 1e-6) {
-        if (result != 0)
-            error(_("Viewport has zero dimension(s)"));
-    } else {
-        switch (unit) {
-        case L_NATIVE:
-            result = scalemin + (result/(thisCM/2.54))*(scalemax - scalemin);
-            break;
-        default:
-            result = transformFromINCHES(location, unit, gc,
-                                         thisCM, otherCM, dd);
-        }
+  double result = location;
+  /* Special case if "thisCM == 0":
+   * If converting FROM relative unit, result will already be zero
+   * so leave it there.
+   * If converting FROM absolute unit that is zero, ditto.
+   * Otherwise (converting FROM non-zero absolute unit),
+   * converting to relative unit is an error.
+   */
+  if ((unit == L_NATIVE || unit == L_NPC) &&
+      thisCM < 1e-6) {
+    if (result != 0)
+      error(_("Viewport has zero dimension(s)"));
+  } else {
+    switch (unit) {
+    case L_NATIVE:
+      result = scalemin + (result/(thisCM/2.54))*(scalemax - scalemin);
+      break;
+    default:
+      result = transformFromINCHES(location, unit, gc,
+                                   thisCM, otherCM, dd);
     }
-    return result;
+  }
+  return result;
 }
 
 double transformWidthHeightFromINCHES(double dimension, int unit,
-				      double scalemin, double scalemax,
-				      const pGEcontext gc,
-				      double thisCM, double otherCM,
-				      pGEDevDesc dd)
+                                      double scalemin, double scalemax,
+                                      const pGEcontext gc,
+                                      double thisCM, double otherCM,
+                                      pGEDevDesc dd)
 {
-    double result = dimension;
-    /* Special case if "thisCM == 0":
-     * If converting FROM relative unit, result will already be zero
-     * so leave it there.
-     * If converting FROM absolute unit that is zero, ditto.
-     * Otherwise (converting FROM non-zero absolute unit),
-     * converting to relative unit is an error.
-     */
-    if ((unit == L_NATIVE || unit == L_NPC) &&
-        thisCM < 1e-6) {
-        if (result != 0)
-            error(_("Viewport has zero dimension(s)"));
-    } else {
-        switch (unit) {
-        case L_NATIVE:
-            result = (result/(thisCM/2.54))*(scalemax - scalemin);
-            break;
-        default:
-            result = transformFromINCHES(dimension, unit, gc,
-                                         thisCM, otherCM, dd);
-        }
+  double result = dimension;
+  /* Special case if "thisCM == 0":
+   * If converting FROM relative unit, result will already be zero
+   * so leave it there.
+   * If converting FROM absolute unit that is zero, ditto.
+   * Otherwise (converting FROM non-zero absolute unit),
+   * converting to relative unit is an error.
+   */
+  if ((unit == L_NATIVE || unit == L_NPC) &&
+      thisCM < 1e-6) {
+    if (result != 0)
+      error(_("Viewport has zero dimension(s)"));
+  } else {
+    switch (unit) {
+    case L_NATIVE:
+      result = (result/(thisCM/2.54))*(scalemax - scalemin);
+      break;
+    default:
+      result = transformFromINCHES(dimension, unit, gc,
+                                   thisCM, otherCM, dd);
     }
-    return result;
+  }
+  return result;
 }
 
 /*
@@ -1374,173 +1374,173 @@ double transformWidthHeightFromINCHES(double dimension, int unit,
  */
 double transformXYtoNPC(double x, int from, double min, double max)
 {
-    double result = x;
-    switch (from) {
-    case L_NPC:
-        break;
-    case L_NATIVE:
-        result = (x - min)/(max - min);
-        break;
-    default:
-        error(_("Unsupported unit conversion"));
-    }
-    return(result);
+  double result = x;
+  switch (from) {
+  case L_NPC:
+    break;
+  case L_NATIVE:
+    result = (x - min)/(max - min);
+    break;
+  default:
+    error(_("Unsupported unit conversion"));
+  }
+  return(result);
 }
 
 double transformWHtoNPC(double x, int from, double min, double max)
 {
-    double result = x;
-    switch (from) {
-    case L_NPC:
-        break;
-    case L_NATIVE:
-        result = x/(max - min);
-        break;
-    default:
-        error(_("Unsupported unit conversion"));
-    }
-    return(result);
+  double result = x;
+  switch (from) {
+  case L_NPC:
+    break;
+  case L_NATIVE:
+    result = x/(max - min);
+    break;
+  default:
+    error(_("Unsupported unit conversion"));
+  }
+  return(result);
 }
 
 double transformXYfromNPC(double x, int to, double min, double max)
 {
-    double result = x;
-    switch (to) {
-    case L_NPC:
-        break;
-    case L_NATIVE:
-        result = min + x*(max - min);
-        break;
-    default:
-        error(_("Unsupported unit conversion"));
-    }
-    return(result);
+  double result = x;
+  switch (to) {
+  case L_NPC:
+    break;
+  case L_NATIVE:
+    result = min + x*(max - min);
+    break;
+  default:
+    error(_("Unsupported unit conversion"));
+  }
+  return(result);
 }
 
 double transformWHfromNPC(double x, int to, double min, double max)
 {
-    double result = x;
-    switch (to) {
-    case L_NPC:
-        break;
-    case L_NATIVE:
-        result = x*(max - min);
-        break;
-    default:
-        error(_("Unsupported unit conversion"));
-    }
-    return(result);
+  double result = x;
+  switch (to) {
+  case L_NPC:
+    break;
+  case L_NATIVE:
+    result = x*(max - min);
+    break;
+  default:
+    error(_("Unsupported unit conversion"));
+  }
+  return(result);
 }
 
 /* Attempt to make validating units faster
  */
 typedef struct {
-    char *name;
-    int code;
+  char *name;
+  int code;
 } UnitTab;
 
 /* NOTE this table must match the order in grid.h
  */
 static UnitTab UnitTable[] = {
-    { "npc",            0 },
-    { "cm",             1 },//
-    { "inches",         2 },//
-    { "lines",          3 },//
-    { "native",         4 },
-    { "null",           5 },//
-    { "snpc",           6 },
-    { "mm",             7 },//
-    { "points",         8 },//
-    { "picas",          9 },//
-    { "bigpts",        10 },//
-    { "dida",          11 },//
-    { "cicero",        12 },//
-    { "scaledpts",     13 },//
-    { "strwidth",      14 },//
-    { "strheight",     15 },//
-    { "strascent",     16 },//
-    { "strdescent",    17 },//
+  { "npc",            0 },
+  { "cm",             1 },//
+  { "inches",         2 },//
+  { "lines",          3 },//
+  { "native",         4 },
+  { "null",           5 },//
+  { "snpc",           6 },
+  { "mm",             7 },//
+  { "points",         8 },//
+  { "picas",          9 },//
+  { "bigpts",        10 },//
+  { "dida",          11 },//
+  { "cicero",        12 },//
+  { "scaledpts",     13 },//
+  { "strwidth",      14 },//
+  { "strheight",     15 },//
+  { "strascent",     16 },//
+  { "strdescent",    17 },//
 
-    { "char",          18 },//
-    { "grobx",         19 },
-    { "groby",         20 },
-    { "grobwidth",     21 },
-    { "grobheight",    22 },
-    { "grobascent",    23 },
-    { "grobdescent",   24 },
+  { "char",          18 },//
+  { "grobx",         19 },
+  { "groby",         20 },
+  { "grobwidth",     21 },
+  { "grobheight",    22 },
+  { "grobascent",    23 },
+  { "grobdescent",   24 },
 
-    { "mylines",       103 },//
-    { "mychar",        104 },//
-    { "mystrwidth",    105 },//
-    { "mystrheight",   106 },//
+  { "mylines",       103 },//
+  { "mychar",        104 },//
+  { "mystrwidth",    105 },//
+  { "mystrheight",   106 },//
 
-    { "sum",           201 },//
-    { "min",           202 },//
-    { "max",           203 },//
+  { "sum",           201 },//
+  { "min",           202 },//
+  { "max",           203 },//
 
-    /*
-     * Some pseudonyms
-     */
-    { "centimetre",  1001 },//
-    { "centimetres", 1001 },//
-    { "centimeter",  1001 },//
-    { "centimeters", 1001 },//
-    { "in",          1002 },//
-    { "inch",        1002 },//
-    { "line",        1003 },//
-    { "millimetre",  1007 },//
-    { "millimetres", 1007 },//
-    { "millimeter",  1007 },//
-    { "millimeters", 1007 },//
-    { "point",       1008 },//
-    { "pt",          1008 },//
+  /*
+   * Some pseudonyms
+   */
+  { "centimetre",  1001 },//
+  { "centimetres", 1001 },//
+  { "centimeter",  1001 },//
+  { "centimeters", 1001 },//
+  { "in",          1002 },//
+  { "inch",        1002 },//
+  { "line",        1003 },//
+  { "millimetre",  1007 },//
+  { "millimetres", 1007 },//
+  { "millimeter",  1007 },//
+  { "millimeters", 1007 },//
+  { "point",       1008 },//
+  { "pt",          1008 },//
 
-    { NULL,            -1 }
+  { NULL,            -1 }
 };
 
 int convertUnit(SEXP unit, int index)
 {
-    int i = 0;
-    int result = 0;
-    int found = 0;
-    while (result >= 0 && !found) {
-	if (UnitTable[i].name == NULL)
-	    result = -1;
-	else {
-	    found = !strcmp(CHAR(STRING_ELT(unit, index)), UnitTable[i].name);
-	    if (found) {
-		result = UnitTable[i].code;
-                /* resolve pseudonyms */
-                if (result > 1000) {
-                    result = result - 1000;
-                }
-            }
-	}
-	i += 1;
+  int i = 0;
+  int result = 0;
+  int found = 0;
+  while (result >= 0 && !found) {
+    if (UnitTable[i].name == NULL)
+      result = -1;
+    else {
+      found = !strcmp(CHAR(STRING_ELT(unit, index)), UnitTable[i].name);
+      if (found) {
+        result = UnitTable[i].code;
+        /* resolve pseudonyms */
+        if (result > 1000) {
+          result = result - 1000;
+        }
+      }
     }
-    if (result < 0)
-	error(_("Invalid unit"));
-    return result;
+    i += 1;
+  }
+  if (result < 0)
+    error(_("Invalid unit"));
+  return result;
 }
 
 SEXP validUnits(SEXP units)
 {
-    int i;
-    int n = LENGTH(units);
-    SEXP answer = R_NilValue;
-    if (n > 0) {
-	if (isString(units)) {
-	    PROTECT(answer = allocVector(INTSXP, n));
-	    for (i = 0; i<n; i++)
-		INTEGER(answer)[i] = convertUnit(units, i);
-	    UNPROTECT(1);
-	} else {
-	    error(_("'units' must be character"));
-	}
+  int i;
+  int n = LENGTH(units);
+  SEXP answer = R_NilValue;
+  if (n > 0) {
+    if (isString(units)) {
+      PROTECT(answer = allocVector(INTSXP, n));
+      for (i = 0; i<n; i++)
+        INTEGER(answer)[i] = convertUnit(units, i);
+      UNPROTECT(1);
     } else {
-	error(_("'units' must be of length > 0"));
+      error(_("'units' must be character"));
     }
-    return answer;
+  } else {
+    error(_("'units' must be of length > 0"));
+  }
+  return answer;
 }
 
 SEXP constructUnits(SEXP amount, SEXP data, SEXP valid_units)
