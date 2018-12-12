@@ -48,15 +48,15 @@ SEXP unit(double value, int unit)
  * (i.e., NOT unitLists or unitArithmetics)
  */
 double unitValue(SEXP unit, int index) {
-  return Rf_asReal(VECTOR_ELT(VECTOR_ELT(unit, index), 0));
+  return Rf_asReal(VECTOR_ELT(VECTOR_ELT(unit, index % unitLength(unit)), 0));
 }
 
 int unitUnit(SEXP unit, int index) {
-  return Rf_asInteger(VECTOR_ELT(VECTOR_ELT(unit, index), 2));
+  return Rf_asInteger(VECTOR_ELT(VECTOR_ELT(unit, index % unitLength(unit)), 2));
 }
 
 SEXP unitData(SEXP unit, int index) {
-  return VECTOR_ELT(VECTOR_ELT(unit, index), 1);
+  return VECTOR_ELT(VECTOR_ELT(unit, index % unitLength(unit)), 1);
 }
 
 /* Old alternative to LENGTH when using that didn't work on all unit struct
