@@ -31,16 +31,16 @@ static const R_CallMethodDef callMethods[] = {
     LCALLDEF(killGrid, 0),
     LCALLDEF(gridDirty, 0),
     LCALLDEF(currentViewport, 0),
-    LCALLDEF(setviewport, 2),
-    LCALLDEF(downviewport, 2),
-    LCALLDEF(downvppath, 3),
-    LCALLDEF(unsetviewport, 1),
-    LCALLDEF(upviewport, 1),
+    LCALLDEF(setviewport, 2), 
+    LCALLDEF(downviewport, 2), 
+    LCALLDEF(downvppath, 3), 
+    LCALLDEF(unsetviewport, 1), 
+    LCALLDEF(upviewport, 1), 
     LCALLDEF(getDisplayList, 0),
     LCALLDEF(setDisplayList, 1),
     LCALLDEF(getDLelt, 1),
     LCALLDEF(setDLelt, 1),
-    LCALLDEF(getDLindex, 0),
+    LCALLDEF(getDLindex, 0), 
     LCALLDEF(setDLindex, 1),
     LCALLDEF(getDLon, 0),
     LCALLDEF(setDLon, 1),
@@ -57,10 +57,10 @@ static const R_CallMethodDef callMethods[] = {
     LCALLDEF(initViewportStack, 0),
     LCALLDEF(initDisplayList, 0),
     LCALLDEF(moveTo, 2),
-    LCALLDEF(lineTo, 3),
-    LCALLDEF(lines, 4),
-    LCALLDEF(segments, 5),
-    LCALLDEF(arrows, 12),
+    LCALLDEF(lineTo, 3), 
+    LCALLDEF(lines, 4), 
+    LCALLDEF(segments, 5), 
+    LCALLDEF(arrows, 12), 
     LCALLDEF(path, 4),
     LCALLDEF(polygon, 3),
     LCALLDEF(xspline, 7),
@@ -97,7 +97,7 @@ static const R_CallMethodDef callMethods[] = {
 };
 
 
-void attribute_visible R_init_grid(DllInfo *dll)
+void attribute_visible R_init_grid(DllInfo *dll) 
 {
     /* No .C, .Fortran, or .External routines => NULL
      */
