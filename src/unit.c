@@ -272,7 +272,7 @@ int pureNullUnit(SEXP unit, int index, pGEDevDesc dd) {
  **************************
  */
 
-/* NOTE:  this code calls back to R code to perform
+/* NOTE:  this code calls back to R code to perform 
  * set.gpar operations, which will impact on grid state variables
  * BUT that's ok(ish) because we save and restore the relevant state
  * variables in here so that the overall effect is NULL.
@@ -798,10 +798,10 @@ double transformLocation(double location, int unit, SEXP data,
 }
 
 double transformX(SEXP x, int index,
-                  LViewportContext vpc,
-                  const pGEcontext gc,
-                  double widthCM, double heightCM,
-                  int nullLMode, int nullAMode, pGEDevDesc dd)
+		  LViewportContext vpc,
+		  const pGEcontext gc,
+		  double widthCM, double heightCM,
+		  int nullLMode, int nullAMode, pGEDevDesc dd)
 {
   double result;
   int i, n, unit = unitUnit(x, index);
@@ -863,11 +863,11 @@ double transformX(SEXP x, int index,
   return result;
 }
 
-double transformY(SEXP y, int index,
-                  LViewportContext vpc,
-                  const pGEcontext gc,
-                  double widthCM, double heightCM,
-                  int nullLMode, int nullAMode, pGEDevDesc dd)
+double transformY(SEXP y, int index, 
+		  LViewportContext vpc,
+		  const pGEcontext gc,
+		  double widthCM, double heightCM,
+		  int nullLMode, int nullAMode, pGEDevDesc dd)
 {
   double result;
   int i, n, unit = unitUnit(y, index);
@@ -950,11 +950,11 @@ double transformDimension(double dim, int unit, SEXP data,
     }
     return result;
 }
-double transformWidth(SEXP width, int index,
-                      LViewportContext vpc,
-                      const pGEcontext gc,
-                      double widthCM, double heightCM,
-                      int nullLMode, int nullAMode, pGEDevDesc dd)
+double transformWidth(SEXP width, int index, 
+		      LViewportContext vpc,
+		      const pGEcontext gc,
+		      double widthCM, double heightCM,
+		      int nullLMode, int nullAMode, pGEDevDesc dd)
 {
   double result;
   int i, n, unit = unitUnit(width, index);
@@ -1017,10 +1017,10 @@ double transformWidth(SEXP width, int index,
 }
 
 double transformHeight(SEXP height, int index,
-                       LViewportContext vpc,
-                       const pGEcontext gc,
-                       double widthCM, double heightCM,
-                       int nullLMode, int nullAMode, pGEDevDesc dd)
+		       LViewportContext vpc,
+		       const pGEcontext gc,
+		       double widthCM, double heightCM,
+		       int nullLMode, int nullAMode, pGEDevDesc dd)
 {
   double result;
   int i, n, unit = unitUnit(height, index);
