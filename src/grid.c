@@ -591,8 +591,8 @@ static SEXP findvppathInChildren(SEXP path, SEXP name,
     return result;
 }
 			   
-static SEXP findvppath(SEXP path, SEXP name, SEXP strict,
-		       SEXP pathsofar, SEXP vp, int depth)
+static SEXP findvppath(SEXP path, SEXP name, SEXP strict, 
+		       SEXP pathsofar, SEXP vp, int depth) 
 {
     SEXP result, zeroDepth, curDepth;
     PROTECT(result = allocVector(VECSXP, 2));
