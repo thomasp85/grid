@@ -432,7 +432,7 @@ static SEXP findInChildren(SEXP name, SEXP strict, SEXP children, int depth)
     UNPROTECT(2);
     return result;
 }
-
+			   
 /*
 find.viewport <- function(name, pvp) {
   found <- FALSE
@@ -590,7 +590,7 @@ static SEXP findvppathInChildren(SEXP path, SEXP name,
     UNPROTECT(2);
     return result;
 }
-
+			   
 static SEXP findvppath(SEXP path, SEXP name, SEXP strict,
 		       SEXP pathsofar, SEXP vp, int depth)
 {
