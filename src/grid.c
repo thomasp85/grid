@@ -432,7 +432,7 @@ static SEXP findInChildren(SEXP name, SEXP strict, SEXP children, int depth)
     UNPROTECT(2);
     return result;
 }
-                         
+
 /*
 find.viewport <- function(name, pvp) {
   found <- FALSE
@@ -590,7 +590,7 @@ static SEXP findvppathInChildren(SEXP path, SEXP name,
     UNPROTECT(2);
     return result;
 }
-                         
+
 static SEXP findvppath(SEXP path, SEXP name, SEXP strict,
 		       SEXP pathsofar, SEXP vp, int depth)
 {
@@ -606,7 +606,7 @@ static SEXP findvppath(SEXP path, SEXP name, SEXP strict,
     if (noChildren(viewportChildren(vp))) {
 	SET_VECTOR_ELT(result, 0, zeroDepth);
 	SET_VECTOR_ELT(result, 1, R_NilValue);
-      
+	
     } 
     /* 
      * Check for the viewport name AND whether the rest
@@ -989,7 +989,7 @@ SEXP L_newpage()
 {
     pGEDevDesc dd = getDevice();
     R_GE_gcontext gc;
-    /*
+    /* 
      * Has the device been drawn on yet?
      */
     Rboolean deviceDirty = GEdeviceDirty(dd);
@@ -3787,5 +3787,4 @@ SEXP L_stringMetric(SEXP label)
     UNPROTECT(5);
     return result;
 }
-
 
