@@ -1559,16 +1559,16 @@ SEXP validUnits(SEXP units)
     return answer;
 }
 
-SEXP constructUnits(SEXP amount, SEXP data, SEXP valid_units) {
+SEXP constructUnits(SEXP amount, SEXP data, SEXP validUnits) {
   int n = LENGTH(amount);
   SEXP units = PROTECT(allocVector(VECSXP, n));
-  double* p_amount = REAL(amount);
-  int* p_valid_units = INTEGER(valid_units);
+  double* pAmount = REAL(amount);
+  int* pValidUnits = INTEGER(validUnits);
   for (int i = 0; i < n; i++) {
     SEXP unit = SET_VECTOR_ELT(units, i, allocVector(VECSXP, 3));
-    SET_VECTOR_ELT(unit, 0, Rf_ScalarReal(p_amount[i]));
+    SET_VECTOR_ELT(unit, 0, Rf_ScalarReal(pAmount[i]));
     SET_VECTOR_ELT(unit, 1, VECTOR_ELT(data, i));
-    SET_VECTOR_ELT(unit, 2, Rf_ScalarInteger(p_valid_units[i]));
+    SET_VECTOR_ELT(unit, 2, Rf_ScalarInteger(pValidUnits[i]));
   }
   classgets(units, mkString("unit"));
   UNPROTECT(1);
@@ -1577,11 +1577,11 @@ SEXP constructUnits(SEXP amount, SEXP data, SEXP valid_units) {
 
 SEXP matchUnit(SEXP units, SEXP unit) {
   int n = unitLength(units);
-  int unit_i = Rf_asInteger(unit);
+  int unitInt = Rf_asInteger(unit);
   int count = 0;
   SEXP matches = PROTECT(allocVector(INTSXP, n));
   for (int i = 0; i < n; i++) {
-    if (unitUnit(units, i) == unit_i) {
+    if (unitUnit(units, i) == unitInt) {
       INTEGER(matches)[count] = i + 1;
       count++;
     }
@@ -1609,46 +1609,45 @@ int allAbsolute(SEXP units) {
 }
 
 SEXP absoluteUnits(SEXP units) {
-  int n = unitLength(units);
-  int is_absolute[n];
-  int all_absolute = 1;
-  for (int i = 0; i < n; i++) {
-    int u = unitUnit(units, i);
-    if (isArith(u)) {
-      is_absolute[i] = allAbsolute(unitData(units, i));
-    } else {
-      is_absolute[i] = isAbsolute(u);
-    }
-    if (!is_absolute[i]) all_absolute = 0;
-  }
-  // Early exit avoiding a copy
-  if (all_absolute) return units;
-
-  SEXP absolutes = PROTECT(allocVector(VECSXP, n));
-  SEXP null_unit = PROTECT(allocVector(VECSXP, 3));
-  SET_VECTOR_ELT(null_unit, 0, Rf_ScalarReal(1.0));
-  SET_VECTOR_ELT(null_unit, 1, R_NilValue);
-  SET_VECTOR_ELT(null_unit, 2, Rf_ScalarInteger(5));
-  SEXP unit;
-  for (int i = 0; i < n; i++) {
-    if (is_absolute[i]) {
-      unit = PROTECT(shallow_duplicate(VECTOR_ELT(units, i)));
-      MARK_NOT_MUTABLE(unit);
-    } else if (isArith(unitUnit(units, i))) {
-      unit = PROTECT(allocVector(VECSXP, 3));
-      SET_VECTOR_ELT(unit, 0, VECTOR_ELT(VECTOR_ELT(units, i), 0));
-      SET_VECTOR_ELT(unit, 1, absoluteUnits(unitData(units, i)));
-      SET_VECTOR_ELT(unit, 2, VECTOR_ELT(VECTOR_ELT(units, i), 2));
-    } else {
-      unit = PROTECT(shallow_duplicate(null_unit));
-      MARK_NOT_MUTABLE(unit);
-    }
-    SET_VECTOR_ELT(absolutes, i, unit);
-    UNPROTECT(1);
-  }
-  classgets(absolutes, mkString("unit"));
-  UNPROTECT(2);
-  return absolutes;
+	int n = unitLength(units);
+	int unitIsAbsolute[n];
+	int unitsAllAbsolute = 1;
+	for (int i = 0; i < n; i++) {
+		int u = unitUnit(units, i);
+		if (isArith(u)) {
+			unitIsAbsolute[i] = allAbsolute(unitData(units, i));
+		} else {
+			unitIsAbsolute[i] = isAbsolute(u);
+		}
+		if (!unitIsAbsolute[i]) unitsAllAbsolute = 0;
+	}
+	// Early exit avoiding a copy
+	if (unitsAllAbsolute) return units;
+	
+	SEXP absolutes = PROTECT(allocVector(VECSXP, n));
+	SEXP nullUnit = PROTECT(allocVector(VECSXP, 3));
+	SET_VECTOR_ELT(nullUnit, 0, Rf_ScalarReal(1.0));
+	SET_VECTOR_ELT(nullUnit, 1, R_NilValue);
+	SET_VECTOR_ELT(nullUnit, 2, Rf_ScalarInteger(5));
+	for (int i = 0; i < n; i++) {
+		SEXP unit;
+		if (unitIsAbsolute[i]) {
+			unit = PROTECT(shallow_duplicate(VECTOR_ELT(units, i)));
+			MARK_NOT_MUTABLE(unit);
+		} else if (isArith(unitUnit(units, i))) {
+			unit = PROTECT(allocVector(VECSXP, 3));
+			SET_VECTOR_ELT(unit, 0, VECTOR_ELT(VECTOR_ELT(units, i), 0));
+			SET_VECTOR_ELT(unit, 1, absoluteUnits(unitData(units, i)));
+			SET_VECTOR_ELT(unit, 2, VECTOR_ELT(VECTOR_ELT(units, i), 2));
+		} else {
+			unit = PROTECT(shallow_duplicate(nullUnit));
+		}
+		SET_VECTOR_ELT(absolutes, i, unit);
+		UNPROTECT(1);
+	}
+	classgets(absolutes, mkString("unit"));
+	UNPROTECT(2);
+	return absolutes;
 }
 SEXP addUnit(SEXP u1, SEXP u2) {
 	SEXP result = PROTECT(allocVector(VECSXP, 3));
@@ -1671,18 +1670,18 @@ SEXP addUnit(SEXP u1, SEXP u2) {
 	// Otherwise we construct a summation
 	SET_VECTOR_ELT(result, 0, Rf_ScalarReal(1.0));
 	SET_VECTOR_ELT(result, 2, Rf_ScalarInteger(L_SUM));
-	int is_sum1 = type1 == L_SUM;
-	int is_sum2 = type2 == L_SUM;
-	int data1_length = is_sum1 ? LENGTH(data1) : 1;
-	int data2_length = is_sum2 ? LENGTH(data2) : 1;
-	SEXP data = SET_VECTOR_ELT(result, 1, allocVector(VECSXP, data1_length + data2_length));
-	if (is_sum1) {
+	int isSum1 = type1 == L_SUM;
+	int isSum2 = type2 == L_SUM;
+	int lengthData1 = isSum1 ? LENGTH(data1) : 1;
+	int lengthData2 = isSum2 ? LENGTH(data2) : 1;
+	SEXP data = SET_VECTOR_ELT(result, 1, allocVector(VECSXP, lengthData1 + lengthData2));
+	if (isSum1) {
 		if (amount1 == 1.0) {
-			for (int j = 0; j < data1_length; j++) {
+			for (int j = 0; j < lengthData1; j++) {
 				SET_VECTOR_ELT(data, j, VECTOR_ELT(data1, j));
 			}
 		} else {
-			for (int j = 0; j < data1_length; j++) {
+			for (int j = 0; j < lengthData1; j++) {
 				SEXP data_unit = SET_VECTOR_ELT(data, j, shallow_duplicate(VECTOR_ELT(data1, j)));
 				SET_VECTOR_ELT(data_unit, 0, Rf_ScalarReal(amount1 * Rf_asReal(VECTOR_ELT(data_unit, 0))));
 			}
@@ -1690,19 +1689,19 @@ SEXP addUnit(SEXP u1, SEXP u2) {
 	} else {
 		SET_VECTOR_ELT(data, 0, u1);
 	}
-	if (is_sum2) {
+	if (isSum2) {
 		if (amount2 == 1.0) {
-			for (int j = 0; j < data2_length; j++) {
-				SET_VECTOR_ELT(data, j + data1_length, VECTOR_ELT(data2, j));
+			for (int j = 0; j < lengthData2; j++) {
+				SET_VECTOR_ELT(data, j + lengthData1, VECTOR_ELT(data2, j));
 			}
 		} else {
-			for (int j = 0; j < data2_length; j++) {
-				SEXP data_unit = SET_VECTOR_ELT(data, j + data1_length, shallow_duplicate(VECTOR_ELT(data2, j)));
+			for (int j = 0; j < lengthData2; j++) {
+				SEXP data_unit = SET_VECTOR_ELT(data, j + lengthData1, shallow_duplicate(VECTOR_ELT(data2, j)));
 				SET_VECTOR_ELT(data_unit, 0, Rf_ScalarReal(amount2 * Rf_asReal(VECTOR_ELT(data_unit, 0))));
 			}
 		}
 	} else {
-		SET_VECTOR_ELT(data, data1_length, u2);
+		SET_VECTOR_ELT(data, lengthData1, u2);
 	}
 	classgets(data, mkString("unit"));
 	
@@ -1711,12 +1710,12 @@ SEXP addUnit(SEXP u1, SEXP u2) {
 }
 SEXP addUnits(SEXP u1, SEXP u2, SEXP ind1, SEXP ind2) {
   int n = LENGTH(ind1);
-  int* p_ind1 = INTEGER(ind1);
-  int* p_ind2 = INTEGER(ind2);
+  int* pInd1 = INTEGER(ind1);
+  int* pInd2 = INTEGER(ind2);
   SEXP added = PROTECT(allocVector(VECSXP, n));
   for (int i = 0; i < n; i++) {
-    SEXP unit1 = VECTOR_ELT(u1, p_ind1[i]);
-    SEXP unit2 = VECTOR_ELT(u2, p_ind2[i]);
+    SEXP unit1 = VECTOR_ELT(u1, pInd1[i]);
+    SEXP unit2 = VECTOR_ELT(u2, pInd2[i]);
     SET_VECTOR_ELT(added, i, addUnit(unit1, unit2));
   }
   classgets(added, mkString("unit"));
@@ -1725,9 +1724,9 @@ SEXP addUnits(SEXP u1, SEXP u2, SEXP ind1, SEXP ind2) {
 }
 SEXP flipUnits(SEXP units) {
   int n = unitLength(units);
-  SEXP unit, flipped = PROTECT(allocVector(VECSXP, n));
+  SEXP flipped = PROTECT(allocVector(VECSXP, n));
   for (int i = 0; i < n; i++) {
-    unit = SET_VECTOR_ELT(flipped, i, shallow_duplicate(VECTOR_ELT(units, i)));
+    SEXP unit = SET_VECTOR_ELT(flipped, i, shallow_duplicate(VECTOR_ELT(units, i)));
     SET_VECTOR_ELT(unit, 0, Rf_ScalarReal(-1.0 * Rf_asReal(VECTOR_ELT(unit, 0))));
   }
   classgets(flipped, mkString("unit"));
@@ -1739,7 +1738,6 @@ SEXP summaryUnits(SEXP units, SEXP inds, SEXP length_out, SEXP op_type) {
   int type = Rf_asInteger(op_type);
   double amount, amount_temp;
   SEXP out = PROTECT(allocVector(VECSXP, n));
-  SEXP unit, unit_temp, data, first_data, current_data, inner_data;
 
   int* p_ind[m];
   for (int i = 0; i < m; i++) {
@@ -1751,9 +1749,10 @@ SEXP summaryUnits(SEXP units, SEXP inds, SEXP length_out, SEXP op_type) {
   for (int i = 0; i < n; i++) {
     int k = 0;
   	int first_type, current_type;
-    unit = SET_VECTOR_ELT(out, i, allocVector(VECSXP, 3));
+    SEXP unit = SET_VECTOR_ELT(out, i, allocVector(VECSXP, 3));
+    SEXP first_data;
     for (int j = 0; j < m; j++) {
-      unit_temp = VECTOR_ELT(VECTOR_ELT(units, j), p_ind[j][i]);
+      SEXP unit_temp = VECTOR_ELT(VECTOR_ELT(units, j), p_ind[j][i]);
       current_type = Rf_asInteger(VECTOR_ELT(unit_temp, 2));
       if (j == 0) {
         first_type = current_type;
@@ -1787,15 +1786,15 @@ SEXP summaryUnits(SEXP units, SEXP inds, SEXP length_out, SEXP op_type) {
     }
     SET_VECTOR_ELT(unit, 0, Rf_ScalarReal(1.0));
     SET_VECTOR_ELT(unit, 2, Rf_ScalarInteger(type));
-    data = SET_VECTOR_ELT(unit, 1, allocVector(VECSXP, k));
+    SEXP data = SET_VECTOR_ELT(unit, 1, allocVector(VECSXP, k));
     k = 0;
     for (int j = 0; j < m; j++) {
-      unit_temp = VECTOR_ELT(VECTOR_ELT(units, j), p_ind[j][i]);
+      SEXP unit_temp = VECTOR_ELT(VECTOR_ELT(units, j), p_ind[j][i]);
       if (is_type[j]) {
-        current_data = VECTOR_ELT(unit_temp, 1);
+        SEXP current_data = VECTOR_ELT(unit_temp, 1);
         amount = Rf_asReal(VECTOR_ELT(unit_temp, 0));
         for (int jj = 0; jj < LENGTH(current_data); jj++) {
-          inner_data = SET_VECTOR_ELT(data, jj + k, shallow_duplicate(VECTOR_ELT(current_data, jj)));
+          SEXP inner_data = SET_VECTOR_ELT(data, jj + k, shallow_duplicate(VECTOR_ELT(current_data, jj)));
           SET_VECTOR_ELT(inner_data, 0, Rf_ScalarReal(amount * Rf_asReal(VECTOR_ELT(inner_data, 0))));
         }
         k += LENGTH(current_data);
