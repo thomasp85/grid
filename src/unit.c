@@ -43,8 +43,7 @@ SEXP unit(double value, int unit)
 
 /* 
  * This is an attempt to extract a single numeric value from
- * a unit.  This is ONLY designed for use on "simple" units
- * (i.e., NOT unitLists or unitArithmetics)
+ * a unit.
  */
 double unitValue(SEXP unit, int index) {
   return Rf_asReal(VECTOR_ELT(VECTOR_ELT(unit, index % unitLength(unit)), 0));
