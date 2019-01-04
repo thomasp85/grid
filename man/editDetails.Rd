@@ -24,7 +24,7 @@ editDetails(x, specs)
   This function is called by \code{grid.edit} and \code{editGrob}.
   A method should be written for classes derived from grob or gTree
   if a change in a slot has an effect on other slots in the grob or
-  children of a gTree (e.g., see \code{grid:::editDetails.xaxis}).
+  children of a gTree (e.g., see \code{grid2:::editDetails.xaxis}).
 
   Note that the slot already has the new value.
 }

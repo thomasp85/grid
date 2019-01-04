@@ -26,7 +26,7 @@ descentDetails(x)
   \code{"grobwidth"} and \code{"grobheight"} units.
   Methods should be written for classes derived from grob or gTree
   where the size of the grob can be determined (see, for example
-  \code{grid:::widthDetails.frame}).
+  \code{grid2:::widthDetails.frame}).
 
   The ascent of a grob is the height of the grob by default and
   the descent of a grob is zero by default, except for text grobs

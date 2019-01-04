@@ -1,4 +1,4 @@
-library(grid)
+library(grid2)
 
 # Physical units in viewport of height 0
 pushViewport(viewport(h=0))

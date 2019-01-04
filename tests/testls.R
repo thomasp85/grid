@@ -1,4 +1,4 @@
-library(grid)
+library(grid2)
 
 # Test hole in DL (deleted grob)
 grid.lines(name="foo")

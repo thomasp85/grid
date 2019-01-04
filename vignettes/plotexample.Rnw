@@ -33,7 +33,7 @@
 <<echo=FALSE, results=hide>>=
 library(grDevices)
 library(stats) # for runif()
-library(grid)
+library(grid2)
 ps.options(pointsize=12)
 options(width=60)
 @
@@ -532,13 +532,13 @@ splom(df, name = "splom")
 grid.remove("cell12")
 grid.add("splom", textGrob(date(), name = "date",
                            gp = gpar(fontface = "italic"),
-                           vp = "cellgrid::cell12"))
+                           vp = "cellgrid2::cell12"))
 <<fig=TRUE, echo=FALSE, results=hide>>=
 <<splomgrob>>
 smg <- removeGrob(smg, "cell12")
 smg <- addGrob(smg, textGrob(date(), name = "date",
                              gp = gpar(fontface = "italic"),
-                             vp = "cellgrid::cell12"))
+                             vp = "cellgrid2::cell12"))
 grid.draw(smg)
 @
 
@@ -552,7 +552,7 @@ splom(df, name = "splom")
 grid.remove("cell12")
 grid.add("splom", textGrob(date(), name = "date",
                            gp = gpar(fontface = "italic"),
-                           vp = "cellgrid::cell12"))
+                           vp = "cellgrid2::cell12"))
 smg <- grid.get("splom")
 save(smg, file = "splom.RData")
 load("splom.RData")
@@ -569,7 +569,7 @@ grid.draw(date)
 smg <- removeGrob(smg, "cell12")
 smg <- addGrob(smg, textGrob(date(), name = "date",
                              gp = gpar(fontface = "italic"),
-                             vp = "cellgrid::cell12"))
+                             vp = "cellgrid2::cell12"))
 save(smg, file = "splom.RData")
 load("splom.RData")
 plot <- getGrob(smg, "plot31")

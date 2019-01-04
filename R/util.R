@@ -29,7 +29,7 @@ grid.top.level.vp <- function() {
 }
 
 # An accessor for getting at the grid global state structure
-# to make debugging easier for me;  all I have to type is grid:::STATE()
+# to make debugging easier for me;  all I have to type is grid2:::STATE()
 STATE <- function() {
   get(".GRID.STATE", envir=.GridEvalEnv)
 }

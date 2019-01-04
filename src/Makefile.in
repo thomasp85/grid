@@ -1,7 +1,7 @@
 #
 # ${R_HOME}/src/library/grid/src/Makefile
 
-pkg = grid
+pkg = grid2
 
 VPATH = @srcdir@
 srcdir = @srcdir@

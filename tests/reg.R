@@ -1,4 +1,4 @@
-library(grid)
+library(grid2)
 
 # Unit conversions
 stopifnot(round(convertX(unit(1, "inches"), "inches", valueOnly=TRUE) - 1,

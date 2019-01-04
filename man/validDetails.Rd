@@ -25,7 +25,7 @@ validDetails(x)
   \code{grid.edit} and \code{editGrob}.
   A method should be written for classes derived from grob or gTree
   to validate the values of slots specific to the new class.
-  (e.g., see \code{grid:::validDetails.axis}).
+  (e.g., see \code{grid2:::validDetails.axis}).
 
   Note that the standard slots for grobs and gTrees are automatically
   validated (e.g., \code{vp}, \code{gp} slots for grobs and,
