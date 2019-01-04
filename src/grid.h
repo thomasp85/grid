@@ -647,7 +647,8 @@ SEXP L_xsplinePoints(SEXP x, SEXP y, SEXP s, SEXP o, SEXP a, SEXP rep,
 SEXP validUnits(SEXP units);
 SEXP constructUnits(SEXP amount, SEXP data, SEXP valid_units);
 SEXP matchUnit(SEXP units, SEXP unit);
-SEXP addUnits(SEXP u1, SEXP u2, SEXP ind1, SEXP ind2);
+SEXP addUnits(SEXP u1, SEXP u2);
+SEXP multUnits(SEXP units, SEXP values);
 SEXP flipUnits(SEXP units);
 SEXP absoluteUnits(SEXP units);
 SEXP summaryUnits(SEXP units, SEXP op_type);

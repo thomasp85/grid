@@ -281,6 +281,7 @@ Ops.unit <- function(e1, e2) {
   if (!ok)
     stop(gettextf("operator '%s' not meaningful for units", .Generic),
          domain = NA)
+  # Unary
   if (missing(e2)) {
     if (.Generic == '*') stop("'*' cannot be used as a unary operator")
     if (.Generic == '-') {
@@ -288,39 +289,30 @@ Ops.unit <- function(e1, e2) {
     }
     return(e1)
   }
-  n1 <- length(e1)
-  n2 <- length(e2)
-  ind1 <- seq_len(n1)
-  ind2 <- seq_len(n2)
-  if (n1 < n2) ind1 <- rep_len(ind1, n2)
-  else if (n1 > n2) ind2 <- rep_len(ind2, n1)
-  ind <- seq_along(ind1)
+  # Multiply
   if (.Generic == "*") {
     # can only multiply a unit by a scalar
     if (nzchar(.Method[1L])) {
       if (nzchar(.Method[2L])) stop("only one operand may be a unit")
       if (!is.numeric(e2)) stop("non-unit operand must be numeric")
-      e1 <- unclass(e1)
-      if (n1 < n2) e1 <- e1[ind1]
-      for (i in ind) {
-        e1[[i]][[1]] <- e1[[i]][[1]] * e2[ind2[i]]
-      }
-      return(`class<-`(e1, 'unit'))
+      unit <- e1
+      value <- e2
     } else {
       if (!is.numeric(e1)) stop("non-unit operand must be numeric")
-      e2 <- unclass(e2)
-      if (n1 > n2) e2 <- e2[ind2]
-      for (i in ind) {
-        e2[[i]][[1]] <- e2[[i]][[1]] * e1[ind1[i]]
-      }
-      return(`class<-`(e2, 'unit'))
+    	unit <- e2
+    	value <- e1
     }
-  } else if (!nzchar(.Method[1L]) && !nzchar(.Method[2L])) {
-    stop("both operands must be units")
-  } else {
-    if (.Generic == '-') e2 <- -e2
-    .Call(C_addUnits, e1, e2, ind1 - 1L, ind2 - 1L)
+  	return(.Call(C_multUnits, unit, value))
   }
+  # Add and sub remains
+  if (!nzchar(.Method[1L]) && !nzchar(.Method[2L])) {
+    stop("both operands must be units")
+  }
+  # Convert subtraction to addition
+  if (.Generic == '-') {
+  	e2 <- -e2
+  }
+  .Call(C_addUnits, e1, e2)
 }
 
 unit.pmin <- function(...) {
