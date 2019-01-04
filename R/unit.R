@@ -224,10 +224,10 @@ unitDesc <- function(x, format = FALSE, ...) {
 as.character.unit <- function(x, ...) {
   vapply(x, unitDesc, character(1))
 }
-as.numeric.unit <- function(x, ...) {
+as.double.unit <- function(x, ...) {
   vapply(unclass(x), `[[`, numeric(1), 1L)
 }
-as.vector.unit <- as.numeric.unit
+as.vector.unit <- as.double.unit
 format.unit <- function(x, ...) {
   vapply(x, unitDesc, character(1), format = TRUE, ...)
 }
