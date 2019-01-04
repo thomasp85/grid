@@ -116,36 +116,42 @@ double pureNullUnitValue(SEXP unit, int index)
 {
   double result = 0;
   int i, n, u = unitUnit(unit, index);
-  double value = unitValue(unit, index);
-  if (u == L_SUM) { // sum
-    SEXP data = unitData(unit, index);
-    n = unitLength(data);
-    for (i = 0; i < n; i++) {
-      result += pureNullUnitValue(data, i);
-    }
-    result *= value;
-  } else if (u == L_MIN) { // min
-    SEXP data = unitData(unit, index);
-    n = unitLength(data);
-    double temp = DBL_MAX;
-    result = pureNullUnitValue(data, 0);
-    for (i = 1; i < n; i++) {
-      temp = pureNullUnitValue(data, i);
-      if (temp < result) result = temp;
-    }
-    result *= value;
-  } else if (u == L_MAX) { // max
-    SEXP data = unitData(unit, index);
-    n = unitLength(data);
-    double temp = DBL_MIN;
-    result = pureNullUnitValue(data, 0);
-    for (i = 1; i < n; i++) {
-      temp = pureNullUnitValue(data, i);
-      if (temp > result) result = temp;
-    }
-    result *= value;
-  } else { // standard unit
-    result = value;
+  double temp, value = unitValue(unit, index);
+  SEXP data;
+  switch(u) {
+  case L_SUM:
+  	data = unitData(unit, index);
+  	n = unitLength(data);
+  	for (i = 0; i < n; i++) {
+  		result += pureNullUnitValue(data, i);
+  	}
+  	result *= value;
+  	break;
+  case L_MIN:
+  	data = unitData(unit, index);
+  	n = unitLength(data);
+  	temp = DBL_MAX;
+  	result = pureNullUnitValue(data, 0);
+  	for (i = 1; i < n; i++) {
+  		temp = pureNullUnitValue(data, i);
+  		if (temp < result) result = temp;
+  	}
+  	result *= value;
+  	break;
+  case L_MAX:
+  	data = unitData(unit, index);
+  	n = unitLength(data);
+  	temp = DBL_MIN;
+  	result = pureNullUnitValue(data, 0);
+  	for (i = 1; i < n; i++) {
+  		temp = pureNullUnitValue(data, i);
+  		if (temp > result) result = temp;
+  	}
+  	result *= value;
+  	break;
+  default:
+  	result = value;
+  	break;
   }
   return result;
 }
@@ -800,62 +806,66 @@ double transformX(SEXP x, int index,
 		  int nullLMode, int nullAMode, pGEDevDesc dd)
 {
   double result;
-  int i, n, unit = unitUnit(x, index);
-  double value = unitValue(x, index);
+  int i, n, nullamode, unit = unitUnit(x, index);
+  double temp, value = unitValue(x, index);
   SEXP data = unitData(x, index);
-  if (unit == L_SUM) {
-    n = unitLength(data);
-    result = 0.0;
-    for (i = 0; i < n; i++) {
-      result += transformX(data, i, vpc, gc,
-                           widthCM, heightCM,
-                           nullLMode, L_summing, dd);
-    }
-    result *= value;
-  } else if (unit == L_MIN) {
-    n = unitLength(data);
-    double temp = DBL_MAX;
-    result = transformX(data, 0, vpc, gc,
-                        widthCM, heightCM,
-                        nullLMode, L_minimising,
-                        dd);
-    for (i = 1; i < n; i++) {
-      temp = transformX(data, i, vpc, gc,
-                        widthCM, heightCM,
-                        nullLMode, L_minimising,
-                        dd);
-      if (temp < result) result = temp;
-    }
-    result *= value;
-  } else if (unit == L_MAX) {
-    n = unitLength(data);
-    double temp = DBL_MIN;
-    result = transformX(data, 0, vpc, gc,
-                        widthCM, heightCM,
-                        nullLMode, L_maximising,
-                        dd);
-    for (i = 1; i < n; i++) {
-      temp = transformX(data, i, vpc, gc,
-                        widthCM, heightCM,
-                        nullLMode, L_maximising,
-                        dd);
-      if (temp > result)
-        result = temp;
-    }
-    result *= value;
-  } else {
-    int nullamode;
-    if (nullAMode == 0)
-      nullamode = L_plain;
-    else
-      nullamode = nullAMode;
-    result = transformLocation(value, unit, data,
-                               vpc.xscalemin, vpc.xscalemax, gc,
-                               widthCM, heightCM,
-                               nullLMode,
-                               nullamode,
-                               dd);
+  switch (unit) {
+  case L_SUM:
+  	n = unitLength(data);
+  	result = 0.0;
+  	for (i = 0; i < n; i++) {
+  		result += transformX(data, i, vpc, gc,
+                         widthCM, heightCM,
+                         nullLMode, L_summing, dd);
+  	}
+  	result *= value;
+  	break;
+  case L_MIN:
+  	n = unitLength(data);
+  	temp = DBL_MAX;
+  	result = transformX(data, 0, vpc, gc,
+                       widthCM, heightCM,
+                       nullLMode, L_minimising,
+                       dd);
+  	for (i = 1; i < n; i++) {
+  		temp = transformX(data, i, vpc, gc,
+                      widthCM, heightCM,
+                      nullLMode, L_minimising,
+                      dd);
+  		if (temp < result) result = temp;
+  	}
+  	result *= value;
+  	break;
+  case L_MAX:
+  	n = unitLength(data);
+  	temp = DBL_MIN;
+  	result = transformX(data, 0, vpc, gc,
+                       widthCM, heightCM,
+                       nullLMode, L_maximising,
+                       dd);
+  	for (i = 1; i < n; i++) {
+  		temp = transformX(data, i, vpc, gc,
+                      widthCM, heightCM,
+                      nullLMode, L_maximising,
+                      dd);
+  		if (temp > result)
+  			result = temp;
+  	}
+  	result *= value;
+  	break;
+  default:
+  	if (nullAMode == 0)
+  		nullamode = L_plain;
+  	else
+  		nullamode = nullAMode;
+  	result = transformLocation(value, unit, data,
+                              vpc.xscalemin, vpc.xscalemax, gc,
+                              widthCM, heightCM,
+                              nullLMode,
+                              nullamode,
+                              dd);
   }
+  
   return result;
 }
 
@@ -865,64 +875,68 @@ double transformY(SEXP y, int index,
 		  double widthCM, double heightCM,
 		  int nullLMode, int nullAMode, pGEDevDesc dd)
 {
-  double result;
-  int i, n, unit = unitUnit(y, index);
-  double value = unitValue(y, index);
-  SEXP data = unitData(y, index);
-  if (unit == L_SUM) {
-    n = unitLength(data);
-    result = 0.0;
-    for (i = 0; i < n; i++) {
-      result += transformY(data, i, vpc, gc,
-                           widthCM, heightCM,
-                           nullLMode, L_summing, dd);
-    }
-    result *= value;
-  } else if (unit == L_MIN) {
-    n = unitLength(data);
-    double temp = DBL_MAX;
-    result = transformY(data, 0, vpc, gc,
+	double result;
+	int i, n, nullamode, unit = unitUnit(y, index);
+	double temp, value = unitValue(y, index);
+	SEXP data = unitData(y, index);
+	switch (unit) {
+	case L_SUM:
+		n = unitLength(data);
+		result = 0.0;
+		for (i = 0; i < n; i++) {
+			result += transformY(data, i, vpc, gc,
                         widthCM, heightCM,
-                        nullLMode, L_minimising,
-                        dd);
-    for (i = 1; i < n; i++) {
-      temp = transformY(data, i, vpc, gc,
-                        widthCM, heightCM,
-                        nullLMode, L_minimising,
-                        dd);
-      if (temp < result) result = temp;
-    }
-    result *= value;
-  } else if (unit == L_MAX) {
-    n = unitLength(data);
-    double temp = DBL_MIN;
-    result = transformY(data, 0, vpc, gc,
-                        widthCM, heightCM,
-                        nullLMode, L_maximising,
-                        dd);
-    for (i = 1; i < n; i++) {
-      temp = transformY(data, i, vpc, gc,
-                        widthCM, heightCM,
-                        nullLMode, L_maximising,
-                        dd);
-      if (temp > result)
-        result = temp;
-    }
-    result *= value;
-  } else {
-    int nullamode;
-    if (nullAMode == 0)
-      nullamode = L_plain;
-    else
-      nullamode = nullAMode;
-    result = transformLocation(value, unit, data,
-                               vpc.yscalemin, vpc.yscalemax, gc,
-                               heightCM, widthCM,
-                               nullLMode,
-                               nullamode,
-                               dd);
-  }
-  return result;
+                        nullLMode, L_summing, dd);
+		}
+		result *= value;
+		break;
+	case L_MIN:
+		n = unitLength(data);
+		temp = DBL_MAX;
+		result = transformY(data, 0, vpc, gc,
+                      widthCM, heightCM,
+                      nullLMode, L_minimising,
+                      dd);
+		for (i = 1; i < n; i++) {
+			temp = transformY(data, i, vpc, gc,
+                     widthCM, heightCM,
+                     nullLMode, L_minimising,
+                     dd);
+			if (temp < result) result = temp;
+		}
+		result *= value;
+		break;
+	case L_MAX:
+		n = unitLength(data);
+		temp = DBL_MIN;
+		result = transformY(data, 0, vpc, gc,
+                      widthCM, heightCM,
+                      nullLMode, L_maximising,
+                      dd);
+		for (i = 1; i < n; i++) {
+			temp = transformY(data, i, vpc, gc,
+                     widthCM, heightCM,
+                     nullLMode, L_maximising,
+                     dd);
+			if (temp > result)
+				result = temp;
+		}
+		result *= value;
+		break;
+	default:
+		if (nullAMode == 0)
+			nullamode = L_plain;
+		else
+			nullamode = nullAMode;
+		result = transformLocation(value, unit, data,
+                             vpc.yscalemin, vpc.yscalemax, gc,
+                             heightCM, widthCM,
+                             nullLMode,
+                             nullamode,
+                             dd);
+	}
+	
+	return result;
 }
 
 double transformDimension(double dim, int unit, SEXP data,
@@ -952,64 +966,68 @@ double transformWidth(SEXP width, int index,
 		      double widthCM, double heightCM,
 		      int nullLMode, int nullAMode, pGEDevDesc dd)
 {
-  double result;
-  int i, n, unit = unitUnit(width, index);
-  double value = unitValue(width, index);
-  SEXP data = unitData(width, index);
-  if (unit == L_SUM) {
-    n = unitLength(data);
-    result = 0.0;
-    for (i = 0; i < n; i++) {
-      result += transformWidth(data, i, vpc, gc,
-                               widthCM, heightCM,
-                               nullLMode, L_summing, dd);
-    }
-    result *= value;
-  } else if (unit == L_MIN) {
-    n = unitLength(data);
-    double temp = DBL_MAX;
-    result = transformWidth(data, 0, vpc, gc,
-                            widthCM, heightCM,
-                            nullLMode, L_minimising,
-                            dd);
-    for (i = 1; i < n; i++) {
-      temp = transformWidth(data, i, vpc, gc,
-                            widthCM, heightCM,
-                            nullLMode, L_minimising,
-                            dd);
-      if (temp < result) result = temp;
-    }
-    result *= value;
-  } else if (unit == L_MAX) {
-    n = unitLength(data);
-    double temp = DBL_MIN;
-    result = transformWidth(data, 0, vpc, gc,
-                            widthCM, heightCM,
-                            nullLMode, L_maximising,
-                            dd);
-    for (i = 1; i < n; i++) {
-      temp = transformWidth(data, i, vpc, gc,
-                            widthCM, heightCM,
-                            nullLMode, L_maximising,
-                            dd);
-      if (temp > result)
-        result = temp;
-    }
-    result *= value;
-  } else {
-    int nullamode;
-    if (nullAMode == 0)
-      nullamode = L_plain;
-    else
-      nullamode = nullAMode;
-    result = transformDimension(value, unit, data,
-                                vpc.xscalemin, vpc.xscalemax, gc,
-                                widthCM, heightCM,
-                                nullLMode,
-                                nullamode,
-                                dd);
-  }
-  return result;
+	double result;
+	int i, n, nullamode, unit = unitUnit(width, index);
+	double temp, value = unitValue(width, index);
+	SEXP data = unitData(width, index);
+	switch (unit) {
+	case L_SUM:
+		n = unitLength(data);
+		result = 0.0;
+		for (i = 0; i < n; i++) {
+			result += transformWidth(data, i, vpc, gc,
+                        widthCM, heightCM,
+                        nullLMode, L_summing, dd);
+		}
+		result *= value;
+		break;
+	case L_MIN:
+		n = unitLength(data);
+		temp = DBL_MAX;
+		result = transformWidth(data, 0, vpc, gc,
+                      widthCM, heightCM,
+                      nullLMode, L_minimising,
+                      dd);
+		for (i = 1; i < n; i++) {
+			temp = transformWidth(data, i, vpc, gc,
+                     widthCM, heightCM,
+                     nullLMode, L_minimising,
+                     dd);
+			if (temp < result) result = temp;
+		}
+		result *= value;
+		break;
+	case L_MAX:
+		n = unitLength(data);
+		temp = DBL_MIN;
+		result = transformWidth(data, 0, vpc, gc,
+                      widthCM, heightCM,
+                      nullLMode, L_maximising,
+                      dd);
+		for (i = 1; i < n; i++) {
+			temp = transformWidth(data, i, vpc, gc,
+                     widthCM, heightCM,
+                     nullLMode, L_maximising,
+                     dd);
+			if (temp > result)
+				result = temp;
+		}
+		result *= value;
+		break;
+	default:
+		if (nullAMode == 0)
+			nullamode = L_plain;
+		else
+			nullamode = nullAMode;
+		result = transformDimension(value, unit, data,
+                              vpc.xscalemin, vpc.xscalemax, gc,
+                              widthCM, heightCM,
+                              nullLMode,
+                              nullamode,
+                              dd);
+	}
+	
+	return result;
 }
 
 double transformHeight(SEXP height, int index,
@@ -1018,64 +1036,68 @@ double transformHeight(SEXP height, int index,
 		       double widthCM, double heightCM,
 		       int nullLMode, int nullAMode, pGEDevDesc dd)
 {
-  double result;
-  int i, n, unit = unitUnit(height, index);
-  double value = unitValue(height, index);
-  SEXP data = unitData(height, index);
-  if (unit == L_SUM) {
-    n = unitLength(data);
-    result = 0.0;
-    for (i = 0; i < n; i++) {
-      result += transformHeight(data, i, vpc, gc,
-                                widthCM, heightCM,
-                                nullLMode, L_summing, dd);
-    }
-    result *= value;
-  } else if (unit == L_MIN) {
-    n = unitLength(data);
-    double temp = DBL_MAX;
-    result = transformHeight(data, 0, vpc, gc,
-                             widthCM, heightCM,
-                             nullLMode, L_minimising,
-                             dd);
-    for (i = 1; i < n; i++) {
-      temp = transformHeight(data, i, vpc, gc,
-                             widthCM, heightCM,
-                             nullLMode, L_minimising,
-                             dd);
-      if (temp < result) result = temp;
-    }
-    result *= value;
-  } else if (unit == L_MAX) {
-    n = unitLength(data);
-    double temp = DBL_MIN;
-    result = transformHeight(data, 0, vpc, gc,
-                             widthCM, heightCM,
-                             nullLMode, L_maximising,
-                             dd);
-    for (i = 1; i < n; i++) {
-      temp = transformHeight(data, i, vpc, gc,
-                             widthCM, heightCM,
-                             nullLMode, L_maximising,
-                             dd);
-      if (temp > result)
-        result = temp;
-    }
-    result *= value;
-  } else {
-    int nullamode;
-    if (nullAMode == 0)
-      nullamode = L_plain;
-    else
-      nullamode = nullAMode;
-    result = transformDimension(value, unit, data,
-                                vpc.yscalemin, vpc.yscalemax, gc,
-                                heightCM, widthCM,
-                                nullLMode,
-                                nullamode,
-                                dd);
-  }
-  return result;
+	double result;
+	int i, n, nullamode, unit = unitUnit(height, index);
+	double temp, value = unitValue(height, index);
+	SEXP data = unitData(height, index);
+	switch (unit) {
+	case L_SUM:
+		n = unitLength(data);
+		result = 0.0;
+		for (i = 0; i < n; i++) {
+			result += transformHeight(data, i, vpc, gc,
+                            widthCM, heightCM,
+                            nullLMode, L_summing, dd);
+		}
+		result *= value;
+		break;
+	case L_MIN:
+		n = unitLength(data);
+		temp = DBL_MAX;
+		result = transformHeight(data, 0, vpc, gc,
+                          widthCM, heightCM,
+                          nullLMode, L_minimising,
+                          dd);
+		for (i = 1; i < n; i++) {
+			temp = transformHeight(data, i, vpc, gc,
+                         widthCM, heightCM,
+                         nullLMode, L_minimising,
+                         dd);
+			if (temp < result) result = temp;
+		}
+		result *= value;
+		break;
+	case L_MAX:
+		n = unitLength(data);
+		temp = DBL_MIN;
+		result = transformHeight(data, 0, vpc, gc,
+                          widthCM, heightCM,
+                          nullLMode, L_maximising,
+                          dd);
+		for (i = 1; i < n; i++) {
+			temp = transformHeight(data, i, vpc, gc,
+                         widthCM, heightCM,
+                         nullLMode, L_maximising,
+                         dd);
+			if (temp > result)
+				result = temp;
+		}
+		result *= value;
+		break;
+	default:
+		if (nullAMode == 0)
+			nullamode = L_plain;
+		else
+			nullamode = nullAMode;
+		result = transformDimension(value, unit, data,
+                              vpc.yscalemin, vpc.yscalemax, gc,
+                              heightCM, widthCM,
+                              nullLMode,
+                              nullamode,
+                              dd);
+	}
+	
+	return result;
 }
 
 /* Code for transforming a location in INCHES using a transformation matrix.
@@ -1756,13 +1778,13 @@ SEXP summaryUnits(SEXP units, SEXP inds, SEXP length_out, SEXP op_type) {
       for (j = 0; j < m; j++) {
         amount_temp = Rf_asReal(VECTOR_ELT(VECTOR_ELT(VECTOR_ELT(units, j), p_ind[j][i]), 0));
         switch(type) {
-        case 201:
+        case L_SUM:
           amount += amount_temp;
           break;
-        case 202:
+        case L_MIN:
           amount = amount < amount_temp ? amount : amount_temp;
           break;
-        case 203:
+        case L_MAX:
           amount = amount > amount_temp ? amount : amount_temp;
           break;
         }
