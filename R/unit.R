@@ -211,25 +211,25 @@ valid.units <- function(units) {
   .Call(C_validUnits, units)
 }
 
-get_unit_desc <- function(x, format = FALSE, ...) {
+unitDesc <- function(x, format = FALSE, ...) {
   amount <- if (format) format(x[[1]], ...) else x[[1]]
   unit <- units[as.character(x[[3]])]
   if (unit %in% c('sum', 'min', 'max')) {
     paste0(if (amount == 1) '' else paste0(amount, '*'),
-           unit, '(', paste(lapply(x[[2]], get_unit_desc, format = format, ...), collapse = ', '), ')')
+           unit, '(', paste(lapply(x[[2]], unitDesc, format = format, ...), collapse = ', '), ')')
   } else {
     paste0(amount, unit)
   }
 }
 as.character.unit <- function(x, ...) {
-  vapply(x, get_unit_desc, character(1))
+  vapply(x, unitDesc, character(1))
 }
 as.numeric.unit <- function(x, ...) {
   vapply(unclass(x), `[[`, numeric(1), 1L)
 }
 as.vector.unit <- as.numeric.unit
 format.unit <- function(x, ...) {
-  vapply(x, get_unit_desc, character(1), format = TRUE, ...)
+  vapply(x, unitDesc, character(1), format = TRUE, ...)
 }
 print.unit <- function(x, ...) {
   print(as.character(x), quote = FALSE, ...)
@@ -256,19 +256,19 @@ Summary.unit <- function(..., na.rm=FALSE) {
   if (ok == 0)
     stop(gettextf("'Summary' function '%s' not meaningful for units",
                   .Generic), domain = NA)
-  match_units <- .Call(C_matchUnit, x, ok)
-  n_matches <- length(match_units)
-  if (n_matches != 0) {
+  matchUnits <- .Call(C_matchUnit, x, ok)
+  nMatches <- length(matchUnits)
+  if (nMatches != 0) {
     data <- lapply(x, `[[`, 2L)
-    amount <- vapply(x, .subset2, numeric(1), 1L)[match_units]
-    match_data <- unlist(data[match_units], recursive = FALSE)
+    amount <- vapply(x, .subset2, numeric(1), 1L)[matchUnits]
+    matchData <- unlist(data[matchUnits], recursive = FALSE)
     for (i in seq_along(amount)) {
-      if (amount[i] != 1) match_data[[i]] <- match_data[[i]] * amount[i]
+      if (amount[i] != 1) matchData[[i]] <- matchData[[i]] * amount[i]
     }
-    if (n_matches == length(x)) {
-      data <- match_data
+    if (nMatches == length(x)) {
+      data <- matchData
     } else {
-      data <- c(x[-match_units], match_data)
+      data <- c(x[-matchUnits], matchData)
     }
   } else {
     data <- x
@@ -288,30 +288,30 @@ Ops.unit <- function(e1, e2) {
     }
     return(e1)
   }
-  n_1 <- length(e1)
-  n_2 <- length(e2)
-  ind_1 <- seq_len(n_1)
-  ind_2 <- seq_len(n_2)
-  if (n_1 < n_2) ind_1 <- rep_len(ind_1, n_2)
-  else if (n_1 > n_2) ind_2 <- rep_len(ind_2, n_1)
-  ind <- seq_along(ind_1)
+  n1 <- length(e1)
+  n2 <- length(e2)
+  ind1 <- seq_len(n1)
+  ind2 <- seq_len(n2)
+  if (n1 < n2) ind1 <- rep_len(ind1, n2)
+  else if (n1 > n2) ind2 <- rep_len(ind2, n1)
+  ind <- seq_along(ind1)
   if (.Generic == "*") {
     # can only multiply a unit by a scalar
     if (nzchar(.Method[1L])) {
       if (nzchar(.Method[2L])) stop("only one operand may be a unit")
       if (!is.numeric(e2)) stop("non-unit operand must be numeric")
       e1 <- unclass(e1)
-      if (n_1 < n_2) e1 <- e1[ind_1]
+      if (n1 < n2) e1 <- e1[ind1]
       for (i in ind) {
-        e1[[i]][[1]] <- e1[[i]][[1]] * e2[ind_2[i]]
+        e1[[i]][[1]] <- e1[[i]][[1]] * e2[ind2[i]]
       }
       return(`class<-`(e1, 'unit'))
     } else {
       if (!is.numeric(e1)) stop("non-unit operand must be numeric")
       e2 <- unclass(e2)
-      if (n_1 > n_2) e2 <- e2[ind_2]
+      if (n1 > n2) e2 <- e2[ind2]
       for (i in ind) {
-        e2[[i]][[1]] <- e2[[i]][[1]] * e1[ind_1[i]]
+        e2[[i]][[1]] <- e2[[i]][[1]] * e1[ind1[i]]
       }
       return(`class<-`(e2, 'unit'))
     }
@@ -319,7 +319,7 @@ Ops.unit <- function(e1, e2) {
     stop("both operands must be units")
   } else {
     if (.Generic == '-') e2 <- -e2
-    .Call(C_addUnits, e1, e2, ind_1 - 1L, ind_2 - 1L)
+    .Call(C_addUnits, e1, e2, ind1 - 1L, ind2 - 1L)
   }
 }
 
@@ -339,9 +339,9 @@ pSummary <- function(..., op) {
   op <- switch(op, sum = 201L, min = 202L, max = 203L)
   units <- list(...)
   lengths <- vapply(units, length, integer(1))
-  length_out <- max(lengths)
-  ind <- lapply(lengths, function(x) rep_len(seq_len(x), length_out) - 1L)
-  .Call(C_summaryUnits, units, ind, length_out, op)
+  lengthOut <- max(lengths)
+  ind <- lapply(lengths, function(x) rep_len(seq_len(x), lengthOut) - 1L)
+  .Call(C_summaryUnits, units, ind, lengthOut, op)
 }
 
 #########################
