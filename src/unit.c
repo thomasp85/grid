@@ -854,10 +854,7 @@ double transformX(SEXP x, int index,
   	result *= value;
   	break;
   default:
-  	if (nullAMode == 0)
-  		nullamode = L_plain;
-  	else
-  		nullamode = nullAMode;
+  	nullamode = nullAMode ? nullAMode : L_plain;
   	result = transformLocation(value, unit, data,
                               vpc.xscalemin, vpc.xscalemax, gc,
                               widthCM, heightCM,
@@ -924,10 +921,7 @@ double transformY(SEXP y, int index,
 		result *= value;
 		break;
 	default:
-		if (nullAMode == 0)
-			nullamode = L_plain;
-		else
-			nullamode = nullAMode;
+		nullamode = nullAMode ? nullAMode : L_plain;
 		result = transformLocation(value, unit, data,
                              vpc.yscalemin, vpc.yscalemax, gc,
                              heightCM, widthCM,
@@ -1015,10 +1009,7 @@ double transformWidth(SEXP width, int index,
 		result *= value;
 		break;
 	default:
-		if (nullAMode == 0)
-			nullamode = L_plain;
-		else
-			nullamode = nullAMode;
+		nullamode = nullAMode ? nullAMode : L_plain;
 		result = transformDimension(value, unit, data,
                               vpc.xscalemin, vpc.xscalemax, gc,
                               widthCM, heightCM,
@@ -1085,10 +1076,7 @@ double transformHeight(SEXP height, int index,
 		result *= value;
 		break;
 	default:
-		if (nullAMode == 0)
-			nullamode = L_plain;
-		else
-			nullamode = nullAMode;
+		nullamode = nullAMode ? nullAMode : L_plain;
 		result = transformDimension(value, unit, data,
                               vpc.yscalemin, vpc.yscalemax, gc,
                               heightCM, widthCM,
