@@ -40,21 +40,26 @@ SEXP unit(double value, int unit)
 
 /* Accessor functions for unit objects
  */
-
-/* 
- * This is an attempt to extract a single numeric value from
- * a unit.
+/*
+ * This extracts the underlying scalar unit list structure from the unit vector
  */
+SEXP unitScalar(SEXP unit, int index) {
+	return VECTOR_ELT(unit, index % LENGTH(unit));
+}
+
 double unitValue(SEXP unit, int index) {
-  return Rf_asReal(VECTOR_ELT(VECTOR_ELT(unit, index % unitLength(unit)), 0));
+	SEXP u = unitScalar(unit, index);
+	return Rf_asReal(VECTOR_ELT(u, 0));
 }
 
 int unitUnit(SEXP unit, int index) {
-  return Rf_asInteger(VECTOR_ELT(VECTOR_ELT(unit, index % unitLength(unit)), 2));
+	SEXP u = unitScalar(unit, index);
+	return Rf_asInteger(VECTOR_ELT(u, 2));
 }
 
 SEXP unitData(SEXP unit, int index) {
-  return VECTOR_ELT(VECTOR_ELT(unit, index % unitLength(unit)), 1);
+	SEXP u = unitScalar(unit, index);
+	return VECTOR_ELT(u, 1);
 }
 
 /* Old alternative to LENGTH when using that didn't work on all unit struct
