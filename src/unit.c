@@ -23,9 +23,6 @@
 #include <float.h>
 #include <string.h>
 
-#define isAbsolute(X) (X > 1000 || (X > 100 && X < 200) || (X < 19 && X > 0 && X != 4 && X != 6))
-#define isArith(X) X > 200 && X < 300
-
 /* Function to build a single-value unit SEXP internally.
  * Cannot build units requiring data as yet.
  */

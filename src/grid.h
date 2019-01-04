@@ -138,6 +138,12 @@
 #define GRID_ARROWENDS 2
 #define GRID_ARROWTYPE 3
 
+/*
+ * Helpers for unit types
+ */
+#define isAbsolute(X) (X > 1000 || (X > 100 && X < 200) || (X < 19 && X > 0 && X != 4 && X != 6))
+#define isArith(X) X > 200 && X < 300
+
 typedef double LTransform[3][3];
 
 typedef double LLocation[3];
