@@ -650,7 +650,7 @@ SEXP matchUnit(SEXP units, SEXP unit);
 SEXP addUnits(SEXP u1, SEXP u2, SEXP ind1, SEXP ind2);
 SEXP flipUnits(SEXP units);
 SEXP absoluteUnits(SEXP units);
-SEXP summaryUnits(SEXP units, SEXP inds, SEXP length_out, SEXP op_type);
+SEXP summaryUnits(SEXP units, SEXP op_type);
 
 /* From gpar.c */
 SEXP L_getGPar(void);

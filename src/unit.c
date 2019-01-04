@@ -1737,16 +1737,16 @@ SEXP flipUnits(SEXP units) {
 	UNPROTECT(1);
 	return flipped;
 }
-SEXP summaryUnits(SEXP units, SEXP inds, SEXP length_out, SEXP op_type) {
-	int n = Rf_asInteger(length_out), m = unitLength(units);
-	int type = Rf_asInteger(op_type);
-	double amount, amount_temp;
-	SEXP out = PROTECT(allocVector(VECSXP, n));
-	
-	int* p_ind[m];
+SEXP summaryUnits(SEXP units, SEXP op_type) {
+	int n = 0;
+	int m = LENGTH(units);
 	for (int i = 0; i < m; i++) {
-		p_ind[i] = INTEGER(VECTOR_ELT(inds, i));
+		int nTemp = LENGTH(VECTOR_ELT(units, i));
+		n = n < nTemp ? nTemp : n;
 	}
+	int type = Rf_asInteger(op_type);
+	SEXP out = PROTECT(allocVector(VECSXP, n));
+
 	int is_type[m];
 	int all_type = 1;
 	
@@ -1756,21 +1756,21 @@ SEXP summaryUnits(SEXP units, SEXP inds, SEXP length_out, SEXP op_type) {
 		SEXP unit = SET_VECTOR_ELT(out, i, allocVector(VECSXP, 3));
 		SEXP first_data;
 		for (int j = 0; j < m; j++) {
-			SEXP unit_temp = VECTOR_ELT(VECTOR_ELT(units, j), p_ind[j][i]);
-			current_type = Rf_asInteger(VECTOR_ELT(unit_temp, 2));
+			SEXP unit_temp = unitScalar(VECTOR_ELT(units, j), i);
+			current_type = uUnit(unit_temp);
 			if (j == 0) {
 				first_type = current_type;
-				first_data = VECTOR_ELT(unit_temp, 1);
+				first_data = uData(unit_temp);
 			}
 			is_type[j] = current_type == type;
-			all_type = j == 0 || (current_type == first_type && R_compute_identical(VECTOR_ELT(unit_temp, 1), first_data, 15));
-			k += is_type[j] ? LENGTH(VECTOR_ELT(unit_temp, 1)) : 1;
+			all_type = j == 0 || (current_type == first_type && R_compute_identical(uData(unit_temp), first_data, 15));
+			k += is_type[j] ? LENGTH(uData(unit_temp)) : 1;
 		}
 		if (all_type) {
 			// The units are of same type and amount can just collapsed
-			amount = Rf_asReal(VECTOR_ELT(VECTOR_ELT(VECTOR_ELT(units, 0), p_ind[0][i]), 0));
+			double amount = unitValue(VECTOR_ELT(units, 0), i);
 			for (int j = 0; j < m; j++) {
-				amount_temp = Rf_asReal(VECTOR_ELT(VECTOR_ELT(VECTOR_ELT(units, j), p_ind[j][i]), 0));
+				double amount_temp = unitValue(VECTOR_ELT(units, j), i);
 				switch(type) {
 				case L_SUM:
 					amount += amount_temp;
@@ -1784,7 +1784,7 @@ SEXP summaryUnits(SEXP units, SEXP inds, SEXP length_out, SEXP op_type) {
 				}
 			}
 			SET_VECTOR_ELT(unit, 0, Rf_ScalarReal(amount));
-			SET_VECTOR_ELT(unit, 1, VECTOR_ELT(VECTOR_ELT(VECTOR_ELT(units, 0), p_ind[0][i]), 1));
+			SET_VECTOR_ELT(unit, 1, unitData(VECTOR_ELT(units, 0), i));
 			SET_VECTOR_ELT(unit, 2, Rf_ScalarInteger(current_type));
 			continue;
 		}
@@ -1793,13 +1793,13 @@ SEXP summaryUnits(SEXP units, SEXP inds, SEXP length_out, SEXP op_type) {
 		SEXP data = SET_VECTOR_ELT(unit, 1, allocVector(VECSXP, k));
 		k = 0;
 		for (int j = 0; j < m; j++) {
-			SEXP unit_temp = VECTOR_ELT(VECTOR_ELT(units, j), p_ind[j][i]);
+			SEXP unit_temp = unitScalar(VECTOR_ELT(units, j), i);
 			if (is_type[j]) {
-				SEXP current_data = VECTOR_ELT(unit_temp, 1);
-				amount = Rf_asReal(VECTOR_ELT(unit_temp, 0));
+				SEXP current_data = uData(unit_temp);
+				double amount = uValue(unit_temp);
 				for (int jj = 0; jj < LENGTH(current_data); jj++) {
 					SEXP inner_data = SET_VECTOR_ELT(data, jj + k, shallow_duplicate(VECTOR_ELT(current_data, jj)));
-					SET_VECTOR_ELT(inner_data, 0, Rf_ScalarReal(amount * Rf_asReal(VECTOR_ELT(inner_data, 0))));
+					SET_VECTOR_ELT(inner_data, 0, Rf_ScalarReal(amount * uValue(inner_data)));
 				}
 				k += LENGTH(current_data);
 			} else {

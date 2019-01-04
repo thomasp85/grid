@@ -92,7 +92,7 @@ static const R_CallMethodDef callMethods[] = {
     {"addUnits", (DL_FUNC) &addUnits, 4},
     {"flipUnits", (DL_FUNC) &flipUnits, 1},
     {"absoluteUnits", (DL_FUNC) &absoluteUnits, 1},
-    {"summaryUnits", (DL_FUNC) &summaryUnits, 4},
+    {"summaryUnits", (DL_FUNC) &summaryUnits, 2},
     { NULL, NULL, 0 }
 };
 

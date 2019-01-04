@@ -338,10 +338,7 @@ unit.psum <- function(...) {
 pSummary <- function(..., op) {
   op <- switch(op, sum = 201L, min = 202L, max = 203L)
   units <- list(...)
-  lengths <- vapply(units, length, integer(1))
-  lengthOut <- max(lengths)
-  ind <- lapply(lengths, function(x) rep_len(seq_len(x), lengthOut) - 1L)
-  .Call(C_summaryUnits, units, ind, lengthOut, op)
+  .Call(C_summaryUnits, units, op)
 }
 
 #########################
