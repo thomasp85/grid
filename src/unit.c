@@ -1650,71 +1650,74 @@ SEXP absoluteUnits(SEXP units) {
   UNPROTECT(2);
   return absolutes;
 }
-
+SEXP addUnit(SEXP u1, SEXP u2) {
+	SEXP result = PROTECT(allocVector(VECSXP, 3));
+	
+	double amount1 = Rf_asReal(VECTOR_ELT(u1, 0));
+	double amount2 = Rf_asReal(VECTOR_ELT(u2, 0));
+	int type1 = Rf_asInteger(VECTOR_ELT(u1, 2));
+	int type2 = Rf_asInteger(VECTOR_ELT(u2, 2));
+	SEXP data1 = VECTOR_ELT(u1, 1);
+	SEXP data2 = VECTOR_ELT(u2, 1);
+	
+	if (type1 == type2 && R_compute_identical(data1, data2, 15)) {
+		// Two units are of same type and amount can just be added
+		SET_VECTOR_ELT(result, 0, Rf_ScalarReal(amount1 + amount2));
+		SET_VECTOR_ELT(result, 1, data1);
+		SET_VECTOR_ELT(result, 2, Rf_ScalarInteger(type1));
+		UNPROTECT(1);
+		return result;
+	}
+	// Otherwise we construct a summation
+	SET_VECTOR_ELT(result, 0, Rf_ScalarReal(1.0));
+	SET_VECTOR_ELT(result, 2, Rf_ScalarInteger(L_SUM));
+	int is_sum1 = type1 == L_SUM;
+	int is_sum2 = type2 == L_SUM;
+	int data1_length = is_sum1 ? LENGTH(data1) : 1;
+	int data2_length = is_sum2 ? LENGTH(data2) : 1;
+	SEXP data = SET_VECTOR_ELT(result, 1, allocVector(VECSXP, data1_length + data2_length));
+	if (is_sum1) {
+		if (amount1 == 1.0) {
+			for (int j = 0; j < data1_length; j++) {
+				SET_VECTOR_ELT(data, j, VECTOR_ELT(data1, j));
+			}
+		} else {
+			for (int j = 0; j < data1_length; j++) {
+				SEXP data_unit = SET_VECTOR_ELT(data, j, shallow_duplicate(VECTOR_ELT(data1, j)));
+				SET_VECTOR_ELT(data_unit, 0, Rf_ScalarReal(amount1 * Rf_asReal(VECTOR_ELT(data_unit, 0))));
+			}
+		}
+	} else {
+		SET_VECTOR_ELT(data, 0, u1);
+	}
+	if (is_sum2) {
+		if (amount2 == 1.0) {
+			for (int j = 0; j < data2_length; j++) {
+				SET_VECTOR_ELT(data, j + data1_length, VECTOR_ELT(data2, j));
+			}
+		} else {
+			for (int j = 0; j < data2_length; j++) {
+				SEXP data_unit = SET_VECTOR_ELT(data, j + data1_length, shallow_duplicate(VECTOR_ELT(data2, j)));
+				SET_VECTOR_ELT(data_unit, 0, Rf_ScalarReal(amount2 * Rf_asReal(VECTOR_ELT(data_unit, 0))));
+			}
+		}
+	} else {
+		SET_VECTOR_ELT(data, data1_length, u2);
+	}
+	classgets(data, mkString("unit"));
+	
+	UNPROTECT(1);
+	return result;
+}
 SEXP addUnits(SEXP u1, SEXP u2, SEXP ind1, SEXP ind2) {
   int n = LENGTH(ind1);
   int* p_ind1 = INTEGER(ind1);
   int* p_ind2 = INTEGER(ind2);
-  int is_sum1, is_sum2;
   SEXP added = PROTECT(allocVector(VECSXP, n));
   for (int i = 0; i < n; i++) {
-    int i1 = p_ind1[i];
-    int i2 = p_ind2[i];
-    SEXP unit1 = VECTOR_ELT(u1, i1);
-    SEXP unit2 = VECTOR_ELT(u2, i2);
-    SEXP unit = SET_VECTOR_ELT(added, i, allocVector(VECSXP, 3));
-
-    double amount1 = unitValue(u1, i1);
-    double amount2 = unitValue(u2, i2);
-    int type1 = unitUnit(u1, i1);
-    int type2 = unitUnit(u2, i2);
-    SEXP data1 = unitData(u1, i1);
-    SEXP data2 = unitData(u2, i2);
-
-    if (type1 == type2 && R_compute_identical(data1, data2, 15)) {
-      // Two units are of same type and amount can just be added
-      SET_VECTOR_ELT(unit, 0, Rf_ScalarReal(amount1 + amount2));
-      SET_VECTOR_ELT(unit, 1, data1);
-      SET_VECTOR_ELT(unit, 2, Rf_ScalarInteger(type1));
-      continue;
-    }
-    // Otherwise we construct a summation
-    SET_VECTOR_ELT(unit, 0, Rf_ScalarReal(1.0));
-    SET_VECTOR_ELT(unit, 2, Rf_ScalarInteger(L_SUM));
-    is_sum1 = type1 == L_SUM;
-    is_sum2 = type2 == L_SUM;
-    int data1_length = is_sum1 ? LENGTH(data1) : 1;
-    int data2_length = is_sum2 ? LENGTH(data2) : 1;
-    SEXP data = SET_VECTOR_ELT(unit, 1, allocVector(VECSXP, data1_length + data2_length));
-    if (is_sum1) {
-      if (amount1 == 1.0) {
-        for (int j = 0; j < data1_length; j++) {
-          SET_VECTOR_ELT(data, j, VECTOR_ELT(data1, j));
-        }
-      } else {
-        for (int j = 0; j < data1_length; j++) {
-          SEXP data_unit = SET_VECTOR_ELT(data, j, shallow_duplicate(VECTOR_ELT(data1, j)));
-          SET_VECTOR_ELT(data_unit, 0, Rf_ScalarReal(amount1 * Rf_asReal(VECTOR_ELT(data_unit, 0))));
-        }
-      }
-    } else {
-      SET_VECTOR_ELT(data, 0, unit1);
-    }
-    if (is_sum2) {
-      if (amount2 == 1.0) {
-        for (int j = 0; j < data2_length; j++) {
-          SET_VECTOR_ELT(data, j + data1_length, VECTOR_ELT(data2, j));
-        }
-      } else {
-        for (int j = 0; j < data2_length; j++) {
-          SEXP data_unit = SET_VECTOR_ELT(data, j + data1_length, shallow_duplicate(VECTOR_ELT(data2, j)));
-          SET_VECTOR_ELT(data_unit, 0, Rf_ScalarReal(amount2 * Rf_asReal(VECTOR_ELT(data_unit, 0))));
-        }
-      }
-    } else {
-      SET_VECTOR_ELT(data, data1_length, unit2);
-    }
-    classgets(data, mkString("unit"));
+    SEXP unit1 = VECTOR_ELT(u1, p_ind1[i]);
+    SEXP unit2 = VECTOR_ELT(u2, p_ind2[i]);
+    SET_VECTOR_ELT(added, i, addUnit(unit1, unit2));
   }
   classgets(added, mkString("unit"));
   UNPROTECT(1);
