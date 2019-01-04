@@ -2,7 +2,7 @@ library(grid)
 
 # Physical units in viewport of height 0
 pushViewport(viewport(h=0))
-stopifnot(is.finite(convertHeight(unit(72, "bigpts"), "inches")))
+stopifnot(is.finite(as.vector(convertHeight(unit(72, "bigpts"), "inches"))))
 popViewport()
 
 # The gpar font settings for a grob should affect the grob itself
