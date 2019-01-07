@@ -135,9 +135,8 @@ double pureNullUnitValue(SEXP unit, int index)
   case L_MIN:
   	data = unitData(unit, index);
   	n = unitLength(data);
-  	temp = DBL_MAX;
-  	result = pureNullUnitValue(data, 0);
-  	for (i = 1; i < n; i++) {
+  	result = DBL_MAX;
+  	for (i = 0; i < n; i++) {
   		temp = pureNullUnitValue(data, i);
   		if (temp < result) result = temp;
   	}
@@ -146,9 +145,8 @@ double pureNullUnitValue(SEXP unit, int index)
   case L_MAX:
   	data = unitData(unit, index);
   	n = unitLength(data);
-  	temp = DBL_MIN;
-  	result = pureNullUnitValue(data, 0);
-  	for (i = 1; i < n; i++) {
+  	result = DBL_MIN;
+  	for (i = 0; i < n; i++) {
   		temp = pureNullUnitValue(data, i);
   		if (temp > result) result = temp;
   	}
@@ -827,12 +825,8 @@ double transformX(SEXP x, int index,
   	break;
   case L_MIN:
   	n = unitLength(data);
-  	temp = DBL_MAX;
-  	result = transformX(data, 0, vpc, gc,
-                       widthCM, heightCM,
-                       nullLMode, L_minimising,
-                       dd);
-  	for (i = 1; i < n; i++) {
+  	result = DBL_MAX;
+  	for (i = 0; i < n; i++) {
   		temp = transformX(data, i, vpc, gc,
                       widthCM, heightCM,
                       nullLMode, L_minimising,
@@ -843,12 +837,8 @@ double transformX(SEXP x, int index,
   	break;
   case L_MAX:
   	n = unitLength(data);
-  	temp = DBL_MIN;
-  	result = transformX(data, 0, vpc, gc,
-                       widthCM, heightCM,
-                       nullLMode, L_maximising,
-                       dd);
-  	for (i = 1; i < n; i++) {
+  	result = DBL_MIN;
+  	for (i = 0; i < n; i++) {
   		temp = transformX(data, i, vpc, gc,
                       widthCM, heightCM,
                       nullLMode, L_maximising,
@@ -894,12 +884,8 @@ double transformY(SEXP y, int index,
 		break;
 	case L_MIN:
 		n = unitLength(data);
-		temp = DBL_MAX;
-		result = transformY(data, 0, vpc, gc,
-                      widthCM, heightCM,
-                      nullLMode, L_minimising,
-                      dd);
-		for (i = 1; i < n; i++) {
+		result = DBL_MAX;
+		for (i = 0; i < n; i++) {
 			temp = transformY(data, i, vpc, gc,
                      widthCM, heightCM,
                      nullLMode, L_minimising,
@@ -910,12 +896,8 @@ double transformY(SEXP y, int index,
 		break;
 	case L_MAX:
 		n = unitLength(data);
-		temp = DBL_MIN;
-		result = transformY(data, 0, vpc, gc,
-                      widthCM, heightCM,
-                      nullLMode, L_maximising,
-                      dd);
-		for (i = 1; i < n; i++) {
+		result = DBL_MIN;
+		for (i = 0; i < n; i++) {
 			temp = transformY(data, i, vpc, gc,
                      widthCM, heightCM,
                      nullLMode, L_maximising,
@@ -982,12 +964,8 @@ double transformWidth(SEXP width, int index,
 		break;
 	case L_MIN:
 		n = unitLength(data);
-		temp = DBL_MAX;
-		result = transformWidth(data, 0, vpc, gc,
-                      widthCM, heightCM,
-                      nullLMode, L_minimising,
-                      dd);
-		for (i = 1; i < n; i++) {
+		result = DBL_MAX;
+		for (i = 0; i < n; i++) {
 			temp = transformWidth(data, i, vpc, gc,
                      widthCM, heightCM,
                      nullLMode, L_minimising,
@@ -998,12 +976,8 @@ double transformWidth(SEXP width, int index,
 		break;
 	case L_MAX:
 		n = unitLength(data);
-		temp = DBL_MIN;
-		result = transformWidth(data, 0, vpc, gc,
-                      widthCM, heightCM,
-                      nullLMode, L_maximising,
-                      dd);
-		for (i = 1; i < n; i++) {
+		result = DBL_MIN;
+		for (i = 0; i < n; i++) {
 			temp = transformWidth(data, i, vpc, gc,
                      widthCM, heightCM,
                      nullLMode, L_maximising,
@@ -1049,12 +1023,8 @@ double transformHeight(SEXP height, int index,
 		break;
 	case L_MIN:
 		n = unitLength(data);
-		temp = DBL_MAX;
-		result = transformHeight(data, 0, vpc, gc,
-                          widthCM, heightCM,
-                          nullLMode, L_minimising,
-                          dd);
-		for (i = 1; i < n; i++) {
+		result = DBL_MAX;
+		for (i = 0; i < n; i++) {
 			temp = transformHeight(data, i, vpc, gc,
                          widthCM, heightCM,
                          nullLMode, L_minimising,
@@ -1065,12 +1035,8 @@ double transformHeight(SEXP height, int index,
 		break;
 	case L_MAX:
 		n = unitLength(data);
-		temp = DBL_MIN;
-		result = transformHeight(data, 0, vpc, gc,
-                          widthCM, heightCM,
-                          nullLMode, L_maximising,
-                          dd);
-		for (i = 1; i < n; i++) {
+		result = DBL_MIN;
+		for (i = 0; i < n; i++) {
 			temp = transformHeight(data, i, vpc, gc,
                          widthCM, heightCM,
                          nullLMode, L_maximising,
