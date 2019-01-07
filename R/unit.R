@@ -27,26 +27,15 @@ unit <- function(x, units, data = NULL) {
   units <- as.character(units)
   if (length(x) == 0 || length(units) == 0)
     stop("'x' and 'units' must have length > 0")
-  n <- length(x)
-  valid_units <- valid.units(units)
-  if (is.character(data) || is.language(data) ||
-      is.grob(data) || inherits(data, "gPath")) {
-    data <- list(data)
+  if (is.null(data)) {
+  	data <- list(NULL)
+  } else if (is.character(data) || is.language(data) ||
+  		   is.grob(data) || inherits(data, "gPath")) {
+  	data <- list(data)
   }
-  data <- if (is.null(data)) list(NULL) else valid.data(rep_len(units, n), rep_len(data, n))
-  if (length(units) != n) {
-    valid_units <- rep_len(valid_units, n)
-  }
-  if (length(data) != n) data <- rep_len(data, n)
-  if (n == 1) {
-    single_unit(x, data[[1]], valid_units)
-  } else {
-    new_units(x, data, valid_units)
-  }
+  .Call(C_constructUnits, x, data, units)
 }
-new_units <- function(x, data, valid_units) {
-  .Call(C_constructUnits, x, data, valid_units)
-}
+
 single_unit <- function(x, data, valid_units) {
   `class<-`(list(
     list(
@@ -163,49 +152,6 @@ calcStringMetric <- function(text) {
                      "grobascent", "grobdescent",
                      "mylines", "mychar", "mystrwidth", "mystrheight",
                      "sum", "min", "max")
-
-stringUnit <- function(unit) {
-    unit %in% c("strwidth", "strheight", "strascent", "strdescent")
-}
-
-grobUnit <- function(unit) {
-    unit %in% c("grobx", "groby", "grobwidth", "grobheight",
-                "grobascent", "grobdescent")
-}
-
-dataUnit <- function(unit) {
-    stringUnit(unit) | grobUnit(unit)
-}
-
-# TODO: rewrite in C
-# Make sure that and "str*" and "grob*" units have data
-valid.data <- function(units, data) {
-    n <- length(units)
-    str.units <- stringUnit(units)
-    if (any(str.units))
-        for (i in (1L:n)[str.units])
-            if (!(length(data) >= i &&
-                  (is.character(data[[i]]) || is.language(data[[i]]))))
-                stop("no string supplied for 'strwidth/height' unit")
-    # Make sure that a grob has been specified
-    grob.units <- grobUnit(units)
-    if (any(grob.units))
-        for (i in (1L:n)[grob.units]) {
-            if (!(length(data) >= i &&
-                  (is.grob(data[[i]]) || inherits(data[[i]], "gPath") ||
-                   is.character(data[[i]]))))
-                stop("no 'grob' supplied for 'grobwidth/height' unit")
-            if (is.character(data[[i]]))
-                data[[i]] <- gPath(data[[i]])
-            if (inherits(data[[i]], "gPath"))
-                if (depth(data[[i]]) > 1)
-                    stop("'gPath' must have depth 1 in 'grobwidth/height' units")
-        }
-    # Make sure that where no data is required, the data is NULL
-    if (!all(sapply(data[!(str.units | grob.units)], is.null)))
-        stop("non-NULL value supplied for plain unit")
-    data
-}
 
 valid.units <- function(units) {
   .Call(C_validUnits, units)

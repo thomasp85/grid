@@ -1563,20 +1563,76 @@ SEXP validUnits(SEXP units)
     }
     return answer;
 }
-
-SEXP constructUnits(SEXP amount, SEXP data, SEXP validUnits) {
-	int n = LENGTH(amount);
+SEXP validData(SEXP data, SEXP validUnits, int n) {
+	int nData = LENGTH(data);
+	int nUnit = LENGTH(validUnits);
+	int *pValidUnits = INTEGER(validUnits);
+	int dataCopied = 0;
+	
+	if (nData != 1 && nData != n) {
+		error(_("data must be either NULL, have length 1, or match the length of the final unit vector"));
+	}
+	
+	for (int i = 0; i < nUnit; i++) {
+		SEXP singleData = VECTOR_ELT(data, i % nData);
+		int singleUnit = pValidUnits[i % nUnit];
+		int unitIsString = isStringUnit(singleUnit);
+		int unitIsGrob = isGrobUnit(singleUnit);
+		
+		if (unitIsString && !Rf_isString(singleData) && !Rf_isLanguage(singleData)) {
+			error(_("no string supplied for 'strwidth/height' unit"));
+		}
+		if (unitIsGrob) {
+			if (!Rf_inherits(singleData, "grob") && !Rf_inherits(singleData, "gPath") && !Rf_isString(singleData)) {
+				error(_("no 'grob' supplied for 'grobwidth/height' unit"));
+			}
+			if (Rf_isString(singleData)) {
+				if (!dataCopied) {
+					data = PROTECT(shallow_duplicate(data));
+					dataCopied = 1;
+				}
+				SEXP fcall = PROTECT(lang2(install("gPath"), singleData));
+				singleData = eval(fcall, R_gridEvalEnv);
+				SET_VECTOR_ELT(data, i % nData, singleData);
+				UNPROTECT(1);
+			}
+			if (Rf_inherits(singleData, "gPath")) {
+				SEXP fcall = PROTECT(lang2(install("depth"), singleData));
+				SEXP depth = PROTECT(eval(fcall, R_gridEvalEnv));
+				int tooDeep = Rf_asInteger(depth) > 1;
+				UNPROTECT(2);
+				if (tooDeep) {
+					error(_("'gPath' must have depth 1 in 'grobwidth/height' units"));
+				}
+			}
+		}
+		if (!unitIsString && !unitIsGrob && singleData != R_NilValue) {
+			error(_("non-NULL value supplied for plain unit"));
+		}
+	}
+	UNPROTECT(dataCopied);
+	return data;
+}
+SEXP constructUnits(SEXP amount, SEXP data, SEXP unit) {
+	int nAmount = LENGTH(amount);
+	int nData = LENGTH(data);
+	int nUnit = LENGTH(unit);
+	int n = nAmount < nUnit ? nUnit : nAmount;
 	SEXP units = PROTECT(allocVector(VECSXP, n));
+	SEXP valUnits = PROTECT(validUnits(unit));
+	
+	data = validData(data, valUnits, n);
+	
 	double* pAmount = REAL(amount);
-	int* pValidUnits = INTEGER(validUnits);
+	int *pValUnits = INTEGER(valUnits);
 	for (int i = 0; i < n; i++) {
 		SEXP unit = SET_VECTOR_ELT(units, i, allocVector(VECSXP, 3));
-		SET_VECTOR_ELT(unit, 0, Rf_ScalarReal(pAmount[i]));
-		SET_VECTOR_ELT(unit, 1, VECTOR_ELT(data, i));
-		SET_VECTOR_ELT(unit, 2, Rf_ScalarInteger(pValidUnits[i]));
+		SET_VECTOR_ELT(unit, 0, Rf_ScalarReal(pAmount[i % nAmount]));
+		SET_VECTOR_ELT(unit, 1, VECTOR_ELT(data, i % nData));
+		SET_VECTOR_ELT(unit, 2, Rf_ScalarInteger(pValUnits[i % nUnit]));
 	}
 	classgets(units, mkString("unit"));
-	UNPROTECT(1);
+	UNPROTECT(2);
 	return units;
 }
 

@@ -146,6 +146,8 @@
 #define uUnit(X) Rf_asInteger(VECTOR_ELT(X, 2))
 #define isAbsolute(X) (X > 1000 || (X > 100 && X < 200) || (X < 19 && X > 0 && X != 4 && X != 6))
 #define isArith(X) X > 200 && X < 300
+#define isStringUnit(X) X >= 14 && X <= 17
+#define isGrobUnit(X) X >= 19 && X <= 24
 
 typedef double LTransform[3][3];
 
@@ -645,7 +647,7 @@ SEXP L_xsplinePoints(SEXP x, SEXP y, SEXP s, SEXP o, SEXP a, SEXP rep,
 
 /* From unit.c */
 SEXP validUnits(SEXP units);
-SEXP constructUnits(SEXP amount, SEXP data, SEXP valid_units);
+SEXP constructUnits(SEXP amount, SEXP data, SEXP unit);
 SEXP matchUnit(SEXP units, SEXP unit);
 SEXP addUnits(SEXP u1, SEXP u2);
 SEXP multUnits(SEXP units, SEXP values);
