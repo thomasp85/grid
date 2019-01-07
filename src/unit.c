@@ -112,7 +112,7 @@ static double evaluateNullUnit(double value, double thisCM,
 /*
  * Evaluate a "null" _unit_ 
  * This is used by layout code to get a single "null" _value_
- * from a pureNullUnit (which may be a unitList or a unitArithmetic)
+ * from a pureNullUnit
  *
  * This must ONLY be called on a unit which has passed the 
  * pureNullUnit test below.
