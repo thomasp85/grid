@@ -1565,7 +1565,7 @@ SEXP validData(SEXP data, SEXP validUnits, int n) {
 			if (Rf_inherits(singleData, "gPath")) {
 				SEXP fcall = PROTECT(lang2(install("depth"), singleData));
 				SEXP depth = PROTECT(eval(fcall, R_gridEvalEnv));
-				int tooDeep = Rf_asInteger(depth) > 1;
+				int tooDeep = INTEGER(depth)[0] > 1;
 				UNPROTECT(2);
 				if (tooDeep) {
 					error(_("'gPath' must have depth 1 in 'grobwidth/height' units"));
@@ -1604,7 +1604,7 @@ SEXP constructUnits(SEXP amount, SEXP data, SEXP unit) {
 
 SEXP matchUnit(SEXP units, SEXP unit) {
 	int n = unitLength(units);
-	int unitInt = Rf_asInteger(unit);
+	int unitInt = INTEGER(unit)[0];
 	int count = 0;
 	SEXP matches = PROTECT(allocVector(INTSXP, n));
 	for (int i = 0; i < n; i++) {
@@ -1776,7 +1776,7 @@ SEXP summaryUnits(SEXP units, SEXP op_type) {
 		int nTemp = LENGTH(VECTOR_ELT(units, i));
 		n = n < nTemp ? nTemp : n;
 	}
-	int type = Rf_asInteger(op_type);
+	int type = INTEGER(op_type)[0];
 	SEXP out = PROTECT(allocVector(VECSXP, n));
 
 	int is_type[m];

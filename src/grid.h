@@ -141,9 +141,9 @@
 /*
  * Helpers for unit types
  */
-#define uValue(X) Rf_asReal(VECTOR_ELT(X, 0))
+#define uValue(X) REAL(VECTOR_ELT(X, 0))[0]
 #define uData(X) VECTOR_ELT(X, 1)
-#define uUnit(X) Rf_asInteger(VECTOR_ELT(X, 2))
+#define uUnit(X) INTEGER(VECTOR_ELT(X, 2))[0]
 #define isAbsolute(X) (X > 1000 || (X > 100 && X < 200) || (X < 19 && X > 0 && X != 4 && X != 6))
 #define isArith(X) X > 200 && X < 300
 #define isStringUnit(X) X >= 14 && X <= 17
