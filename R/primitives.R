@@ -700,25 +700,42 @@ heightDetails.pathgrob <- function(x) {
 
 
 drawDetails.pathgrob <- function(x, recording=TRUE) {
-      if (is.null(x$id) && is.null(x$id.lengths))
-          grid.Call.graphics(C_polygon, x$x, x$y,
-                             list(as.integer(seq_along(x$x))))
-  else {
-    if (is.null(x$id)) {
-      n <- length(x$id.lengths)
-      id <- rep(1L:n, x$id.lengths)
-    } else {
-      n <- length(unique(x$id))
-      id <- x$id
-    }
-    index <- split(as.integer(seq_along(x$x)), id)
-    grid.Call.graphics(C_path, x$x, x$y, index,
-                       switch(x$rule, winding=1L, evenodd=0L))
+	hasMultiple <- !(is.null(x$pathId) && is.null(x$pathId.lengths))
+	if (hasMultiple) {
+		if (is.null(x$pathId)) {
+			n <- length(x$pathId.lengths)
+			pathId <- rep(1L:n, x$id.lengths)
+		} else {
+			pathId <- x$pathId
+		}
+	}
+	if (is.null(x$id) && is.null(x$id.lengths)) {
+		if (hasMultiple) {
+			grid.Call.graphics(C_polygon, x$x, x$y, split(as.integer(seq_along(x$x)), pathId))
+		} else {
+			grid.Call.graphics(C_polygon, x$x, x$y, list(as.integer(seq_along(x$x))))
+		}
+	} else {
+		if (is.null(x$id)) {
+			n <- length(x$id.lengths)
+			id <- rep(1L:n, x$id.lengths)
+		} else {
+			n <- length(unique(x$id))
+			id <- x$id
+		}
+		index <- split(as.integer(seq_along(x$x)), id)
+		if (hasMultiple) {
+			index <- split(index, pathId[vapply(index, `[`, integer(1), 1L)])
+		} else {
+			index <- list(index)
+		}
+		grid.Call.graphics(C_path, x$x, x$y, index, switch(x$rule, winding=1L, evenodd=0L))
   }
 }
 
 pathGrob <- function(x, y,
                      id=NULL, id.lengths=NULL,
+										 pathId=NULL, pathId.lengths=NULL,
                      rule="winding",
                      default.units="npc",
                      name=NULL, gp=gpar(), vp=NULL) {
@@ -726,8 +743,8 @@ pathGrob <- function(x, y,
     x <- unit(x, default.units)
   if (!is.unit(y))
     y <- unit(y, default.units)
-  grob(x=x, y=y, id=id,
-       id.lengths=id.lengths,
+  grob(x=x, y=y, id=id, id.lengths=id.lengths,
+  		 pathId=pathId, pathId.lengths=pathId.lengths,
        rule=rule,
        name=name, gp=gp, vp=vp, cl="pathgrob")
 }
