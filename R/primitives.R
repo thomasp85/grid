@@ -659,10 +659,16 @@ validDetails.pathgrob <- function(x) {
         stop("'x' and 'y' and 'id' must all be same length")
     if (!is.null(x$id))
         x$id <- as.integer(x$id)
+    if (!is.null(x$parthId))
+    	x$pathId <- as.integer(x$pathId)
     if (!is.null(x$id.lengths) && (sum(x$id.lengths) != length(x$x)))
         stop("'x' and 'y' and 'id.lengths' must specify same overall length")
+    if (!is.null(x$pathId.lengths) && (sum(x$pathId.lengths) != length(x$x)))
+    	stop("'x' and 'y' and 'parthId.lengths' must specify same overall length")
     if (!is.null(x$id.lengths))
         x$id.lengths <- as.integer(x$id.lengths)
+    if (!is.null(x$pathId.lengths))
+    	x$pathId.lengths <- as.integer(x$pathId.lengths)
     x
 }
 
