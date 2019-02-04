@@ -710,7 +710,7 @@ drawDetails.pathgrob <- function(x, recording=TRUE) {
 	if (hasMultiple) {
 		if (is.null(x$pathId)) {
 			n <- length(x$pathId.lengths)
-			pathId <- rep(1L:n, x$id.lengths)
+			pathId <- rep(1L:n, x$pathId.lengths)
 		} else {
 			pathId <- x$pathId
 		}
