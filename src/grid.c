@@ -1136,7 +1136,7 @@ SEXP L_convert(SEXP x, SEXP whatfrom,
          * (to avoid divide-by-zero, but still do something useful)
          */
         relConvert = (!isUnitArithmetic(x) && !isUnitList(x) &&
-        	(unitUnit(x, i) == L_NATIVE || unitUnit(x, i) == L_NPC) &&
+                      (unitUnit(x, i) == L_NATIVE || unitUnit(x, i) == L_NPC) &&
                       (TOunit == L_NATIVE || TOunit == L_NPC) &&
                       ((FROMaxis == TOaxis) ||
                        (FROMaxis == 0 && TOaxis == 2) ||
