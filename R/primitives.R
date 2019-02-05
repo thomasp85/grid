@@ -729,11 +729,11 @@ drawDetails.pathgrob <- function(x, recording=TRUE) {
 			n <- length(unique(x$id))
 			id <- x$id
 		}
-		index <- split(as.integer(seq_along(x$x)), id)
 		if (hasMultiple) {
-			index <- split(index, pathId[vapply(index, `[`, integer(1), 1L)])
+			index <- mapply(split, x = split(as.integer(seq_along(x$x)), pathId), 
+											f = split(id, pathId), SIMPLIFY = FALSE, USE.NAMES = FALSE)
 		} else {
-			index <- list(index)
+			index <- list(split(as.integer(seq_along(x$x)), id))
 		}
 		grid.Call.graphics(C_path, x$x, x$y, index, switch(x$rule, winding=1L, evenodd=0L))
   }
