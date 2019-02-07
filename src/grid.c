@@ -1117,6 +1117,7 @@ SEXP L_convert(SEXP x, SEXP whatfrom,
     getViewportTransform(currentvp, dd, 
 			 &vpWidthCM, &vpHeightCM, 
 			 transform, &rotationAngle);
+    error(_("not here"));
     getViewportContext(currentvp, &vpc);
     nx = unitLength(x);
     PROTECT(answer = allocVector(REALSXP, nx));

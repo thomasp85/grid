@@ -38,28 +38,41 @@ SEXP unit(double value, int unit)
   return units;
 }
 
+int isSimpleUnit(SEXP unit) {
+	return inherits(unit, "simpleUnit");
+}
+
 /* Accessor functions for unit objects
  */
 /*
  * This extracts the underlying scalar unit list structure from the unit vector
  */
 SEXP unitScalar(SEXP unit, int index) {
-	return VECTOR_ELT(unit, index % LENGTH(unit));
+	int i = index % LENGTH(unit);
+	if (isSimpleUnit(unit)) {
+		SEXP newUnit = PROTECT(allocVector(VECSXP, 3));
+		SET_VECTOR_ELT(newUnit, 0, Rf_ScalarReal(REAL(unit)[i]));
+		SET_VECTOR_ELT(newUnit, 1, R_NilValue);
+		SET_VECTOR_ELT(newUnit, 2, Rf_ScalarInteger(INTEGER(getAttrib(unit, mkString("unit")))[0]));
+		UNPROTECT(1);
+		return newUnit;
+	}
+	return VECTOR_ELT(unit, i);
 }
 
 double unitValue(SEXP unit, int index) {
-	SEXP u = unitScalar(unit, index);
-	return uValue(u);
+	if (isSimpleUnit(unit)) return REAL(unit)[index % LENGTH(unit)];
+	return uValue(unitScalar(unit, index));
 }
 
 int unitUnit(SEXP unit, int index) {
-	SEXP u = unitScalar(unit, index);
-	return uUnit(u);
+	if (isSimpleUnit(unit)) return INTEGER(getAttrib(unit, mkString("unit")))[0];
+	return uUnit(unitScalar(unit, index));
 }
 
 SEXP unitData(SEXP unit, int index) {
-	SEXP u = unitScalar(unit, index);
-	return uData(u);
+	if (isSimpleUnit(unit)) return R_NilValue;
+	return uData(unitScalar(unit, index));
 }
 
 /* Old alternative to LENGTH when using that didn't work on all unit struct
@@ -1579,13 +1592,31 @@ SEXP validData(SEXP data, SEXP validUnits, int n) {
 	UNPROTECT(dataCopied);
 	return data;
 }
+void makeSimpleUnit(SEXP values, SEXP unit) {
+	setAttrib(values, mkString("unit"), unit);
+	SEXP classes = PROTECT(allocVector(STRSXP, 2));
+	SET_STRING_ELT(classes, 0, mkChar("simpleUnit"));
+	SET_STRING_ELT(classes, 1, mkChar("unit"));
+	classgets(values, classes);
+	UNPROTECT(1);
+}
 SEXP constructUnits(SEXP amount, SEXP data, SEXP unit) {
 	int nAmount = LENGTH(amount);
 	int nData = LENGTH(data);
 	int nUnit = LENGTH(unit);
+	SEXP valUnits = PROTECT(validUnits(unit));
+	if (nUnit == 1) {
+		int u = INTEGER(valUnits)[0];
+		if (!(isStringUnit(u) || isGrobUnit(u))) {
+			int referenced = MAYBE_REFERENCED(amount);
+			if (referenced) amount = PROTECT(duplicate(amount));
+			makeSimpleUnit(amount, valUnits);
+			UNPROTECT(1 + referenced);
+			return amount;
+		}
+	}
 	int n = nAmount < nUnit ? nUnit : nAmount;
 	SEXP units = PROTECT(allocVector(VECSXP, n));
-	SEXP valUnits = PROTECT(validUnits(unit));
 	
 	data = validData(data, valUnits, n);
 	
@@ -1600,6 +1631,41 @@ SEXP constructUnits(SEXP amount, SEXP data, SEXP unit) {
 	classgets(units, mkString("unit"));
 	UNPROTECT(2);
 	return units;
+}
+SEXP asUnit(SEXP simpleUnit) {
+	if (inherits(simpleUnit, "unit")) {
+		if (!inherits(simpleUnit, "simpleUnit")) {
+			return simpleUnit;
+		}
+	} else {
+		error(_("object is not coercible to a unit"));
+	}
+	int n = LENGTH(simpleUnit);
+	SEXP units = PROTECT(allocVector(VECSXP, n));
+	double* pAmount = REAL(simpleUnit);
+	SEXP valUnit = getAttrib(simpleUnit, mkString("unit"));
+	for (int i = 0; i < n; i++) {
+		SEXP unit = SET_VECTOR_ELT(units, i, allocVector(VECSXP, 3));
+		SET_VECTOR_ELT(unit, 0, Rf_ScalarReal(pAmount[i]));
+		SET_VECTOR_ELT(unit, 1, R_NilValue);
+		SET_VECTOR_ELT(unit, 2, valUnit);
+	}
+	classgets(units, mkString("unit"));
+	UNPROTECT(1);
+	return units;
+}
+SEXP conformingUnits(SEXP unitList) {
+	int n = LENGTH(unitList);
+	int unitType;
+	for (int i = 0; i < n; i++) {
+		SEXP unit = VECTOR_ELT(unitList, i);
+		if (!inherits(unit, "unit")) error(_("object is not a unit"));
+		if (!inherits(unit, "simpleUnit")) return R_NilValue;
+		int tempUnit = INTEGER(getAttrib(unit, mkString("unit")))[0];
+		if (i == 0) unitType = tempUnit;
+		else if (unitType != tempUnit) return R_NilValue;
+	}
+	return Rf_ScalarInteger(unitType);
 }
 
 SEXP matchUnit(SEXP units, SEXP unit) {
@@ -1637,6 +1703,17 @@ int allAbsolute(SEXP units) {
 
 SEXP absoluteUnits(SEXP units) {
 	int n = unitLength(units);
+	if (isSimpleUnit(units)) {
+		if (isAbsolute(INTEGER(getAttrib(units, mkString("unit")))[0])) {
+			return units;
+		}
+		units = PROTECT(allocVector(REALSXP, n));
+		double *pVal = REAL(units);
+		for (int i = 0; i < n; i++) pVal[i] = 1.0;
+		makeSimpleUnit(units, Rf_ScalarInteger(5));
+		UNPROTECT(1);
+		return units;
+	}
 	int unitIsAbsolute[n];
 	int unitsAllAbsolute = 1;
 	for (int i = 0; i < n; i++) {
@@ -1688,7 +1765,9 @@ SEXP multUnits(SEXP units, SEXP values) {
 	double *pValues = REAL(values);
 	
 	for (int i = 0; i < n; i++) {
-		SET_VECTOR_ELT(multiplied, i, multUnit(unitScalar(units, i), pValues[i % nValues]));
+		SEXP unit = PROTECT(unitScalar(units, i));
+		SET_VECTOR_ELT(multiplied, i, multUnit(unit, pValues[i % nValues]));
+		UNPROTECT(1);
 	}
 	classgets(multiplied, mkString("unit"));
 	UNPROTECT(1);
@@ -1729,7 +1808,9 @@ SEXP addUnit(SEXP u1, SEXP u2) {
 			}
 		} else { // Multiply the data with the value of the summation unit
 			for (int j = 0; j < lengthData1; j++) {
-				SET_VECTOR_ELT(data, j, multUnit(unitScalar(data1, j), amount1));
+				SEXP dataUnit = PROTECT(unitScalar(data1, j));
+				SET_VECTOR_ELT(data, j, multUnit(dataUnit, amount1));
+				UNPROTECT(1);
 			}
 		}
 	} else {
@@ -1743,7 +1824,9 @@ SEXP addUnit(SEXP u1, SEXP u2) {
 			}
 		} else {
 			for (int j = 0; j < lengthData2; j++) {
-				SET_VECTOR_ELT(data, j + lengthData1, multUnit(unitScalar(data2, j), amount2));
+				SEXP dataUnit = PROTECT(unitScalar(data2, j));
+				SET_VECTOR_ELT(data, j + lengthData1, multUnit(dataUnit, amount2));
+				UNPROTECT(1);
 			}
 		}
 	} else {
@@ -1758,9 +1841,10 @@ SEXP addUnits(SEXP u1, SEXP u2) {
 	int n = LENGTH(u1) < LENGTH(u2) ? LENGTH(u2) : LENGTH(u1);
 	SEXP added = PROTECT(allocVector(VECSXP, n));
 	for (int i = 0; i < n; i++) {
-		SEXP unit1 = unitScalar(u1, i);
-		SEXP unit2 = unitScalar(u2, i);
+		SEXP unit1 = PROTECT(unitScalar(u1, i));
+		SEXP unit2 = PROTECT(unitScalar(u2, i));
 		SET_VECTOR_ELT(added, i, addUnit(unit1, unit2));
+		UNPROTECT(2);
 	}
 	classgets(added, mkString("unit"));
 	UNPROTECT(1);
@@ -1788,7 +1872,7 @@ SEXP summaryUnits(SEXP units, SEXP op_type) {
 		SEXP unit = SET_VECTOR_ELT(out, i, allocVector(VECSXP, 3));
 		SEXP first_data;
 		for (int j = 0; j < m; j++) {
-			SEXP unit_temp = unitScalar(VECTOR_ELT(units, j), i);
+			SEXP unit_temp = PROTECT(unitScalar(VECTOR_ELT(units, j), i));
 			current_type = uUnit(unit_temp);
 			if (j == 0) {
 				first_type = current_type;
@@ -1797,6 +1881,7 @@ SEXP summaryUnits(SEXP units, SEXP op_type) {
 			is_type[j] = current_type == type;
 			all_type = j == 0 || (current_type == first_type && R_compute_identical(uData(unit_temp), first_data, 15));
 			k += is_type[j] ? LENGTH(uData(unit_temp)) : 1;
+			UNPROTECT(1);
 		}
 		if (all_type) {
 			// The units are of same type and amount can just collapsed
@@ -1825,7 +1910,7 @@ SEXP summaryUnits(SEXP units, SEXP op_type) {
 		SEXP data = SET_VECTOR_ELT(unit, 1, allocVector(VECSXP, k));
 		k = 0;
 		for (int j = 0; j < m; j++) {
-			SEXP unit_temp = unitScalar(VECTOR_ELT(units, j), i);
+			SEXP unit_temp = PROTECT(unitScalar(VECTOR_ELT(units, j), i));
 			if (is_type[j]) {
 				SEXP current_data = uData(unit_temp);
 				double amount = uValue(unit_temp);
@@ -1838,6 +1923,7 @@ SEXP summaryUnits(SEXP units, SEXP op_type) {
 				SET_VECTOR_ELT(data, k, unit_temp);
 				k++;
 			}
+			UNPROTECT(1);
 		}
 		classgets(data, mkString("unit"));
 	}
