@@ -499,6 +499,7 @@ SEXP gpFontSizeSXP(SEXP gp);
 SEXP gpLineHeightSXP(SEXP gp);
 
 void gcontextFromgpar(SEXP gp, int i, const pGEcontext gc, pGEDevDesc dd);
+void updateGContext(SEXP gp, int i, const pGEcontext gc, pGEDevDesc dd);
 
 void initGPar(pGEDevDesc dd);
 
