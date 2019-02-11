@@ -468,27 +468,27 @@ void textRect(double x, double y, SEXP text, int i,
 	      double rot, pGEDevDesc dd, LRect *r);
 
 /* From gpar.c */
-double gpFontSize(SEXP gp, int i);
+double gpFontSize(SEXP gp, int i, int* gpIsScalar);
 
-double gpLineHeight(SEXP gp, int i);
+double gpLineHeight(SEXP gp, int i, int* gpIsScalar);
 
-int gpCol(SEXP gp, int i);
+int gpCol(SEXP gp, int i, int* gpIsScalar);
 
 SEXP gpFillSXP(SEXP gp);
 
-int gpFill(SEXP gp, int i);
+int gpFill(SEXP gp, int i, int* gpIsScalar);
 
-double gpGamma(SEXP gp, int i);
+double gpGamma(SEXP gp, int i, int* gpIsScalar);
 
-int gpLineType(SEXP gp, int i);
+int gpLineType(SEXP gp, int i, int* gpIsScalar);
 
-double gpLineWidth(SEXP gp, int i);
+double gpLineWidth(SEXP gp, int i, int* gpIsScalar);
 
-double gpCex(SEXP gp, int i);
+double gpCex(SEXP gp, int i, int* gpIsScalar);
 
-int gpFont(SEXP gp, int i);
+int gpFont(SEXP gp, int i, int* gpIsScalar);
 
-const char* gpFontFamily(SEXP gp, int i);
+const char* gpFontFamily(SEXP gp, int i, int* gpIsScalar);
 
 SEXP gpFontSXP(SEXP gp);
 
@@ -498,8 +498,9 @@ SEXP gpFontSizeSXP(SEXP gp);
 
 SEXP gpLineHeightSXP(SEXP gp);
 
-void gcontextFromgpar(SEXP gp, int i, const pGEcontext gc, pGEDevDesc dd);
-void updateGContext(SEXP gp, int i, const pGEcontext gc, pGEDevDesc dd);
+int* gpScalarInit();
+void gcontextFromgpar(SEXP gp, int i, const pGEcontext gc, pGEDevDesc dd, int* gpScalars);
+void updateGContext(SEXP gp, int i, const pGEcontext gc, pGEDevDesc dd, int* gpScalars);
 
 void initGPar(pGEDevDesc dd);
 
@@ -639,4 +640,8 @@ SEXP validUnits(SEXP units);
 /* From gpar.c */
 SEXP L_getGPar(void);
 SEXP L_setGPar(SEXP gpars);
-    
+
+/*
+ * Temporary struct while experimenting on L_points
+ */
+int GCSCALARS[15];

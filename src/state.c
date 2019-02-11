@@ -272,7 +272,7 @@ SEXP gridCallback(GEevent task, pGEDevDesc dd, SEXP data) {
                     }
                     if (newpage) {
                         currentgp = gridStateElement(dd, GSS_GPAR);
-                        gcontextFromgpar(currentgp, 0, &gc, dd);
+                        gcontextFromgpar(currentgp, 0, &gc, dd, GCSCALARS);
                         GENewPage(&gc, dd);
                     }
                 }
