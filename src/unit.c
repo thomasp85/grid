@@ -594,7 +594,7 @@ double evaluateGrobUnit(double value, SEXP grob,
      */
     /* Special case for "null" units
      */
-    gcontextFromgpar(currentgp, 0, &gc, dd, GCSCALARS);
+    gcontextFromgpar(currentgp, 0, &gc, dd);
     switch(evalType) {
     case 0:
     case 1:

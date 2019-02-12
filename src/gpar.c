@@ -25,21 +25,14 @@
 /*
  * Array to keep information about whether last accessed gp is scalar
  */
-int* gpScalarInit() {
-    int ngp = 15;
-    int* scalars = (int*) R_alloc(ngp, sizeof(int));
-    for (int i=0; i < ngp; i++) {
-        scalars[i] = -1;
-    }
-    return scalars;
-}
+int gpIsScalar[15] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 /* Some access methods for gpars */
 SEXP gpFontSizeSXP(SEXP gp) {
     return VECTOR_ELT(gp, GP_FONTSIZE);
 }
 
-double gpFontSize(SEXP gp, int i, int* gpIsScalar) {
+double gpFontSize(SEXP gp, int i) {
     SEXP fontsize = gpFontSizeSXP(gp);
     gpIsScalar[GP_FONTSIZE] = LENGTH(fontsize) == 1;
     return REAL(fontsize)[i % LENGTH(fontsize)];
@@ -49,7 +42,7 @@ SEXP gpLineHeightSXP(SEXP gp) {
     return VECTOR_ELT(gp, GP_LINEHEIGHT);
 }
 
-double gpLineHeight(SEXP gp, int i, int* gpIsScalar) {
+double gpLineHeight(SEXP gp, int i) {
     SEXP lineheight = gpLineHeightSXP(gp);
     gpIsScalar[GP_LINEHEIGHT] = LENGTH(lineheight) == 1;
     return REAL(lineheight)[i % LENGTH(lineheight)];
@@ -59,7 +52,7 @@ SEXP gpColSXP(SEXP gp) {
     return VECTOR_ELT(gp, GP_COL);
 }
 /* grid has no concept of 'colour 0' (bg in base) */
-int gpCol(SEXP gp, int i, int* gpIsScalar) {
+int gpCol(SEXP gp, int i) {
     SEXP col = gpColSXP(gp);
     gpIsScalar[GP_COL] = LENGTH(col) == 1;
     int result;
@@ -74,7 +67,7 @@ SEXP gpFillSXP(SEXP gp) {
     return VECTOR_ELT(gp, GP_FILL);
 }
 
-int gpFill(SEXP gp, int i, int* gpIsScalar) {
+int gpFill(SEXP gp, int i) {
     SEXP fill = gpFillSXP(gp);
     gpIsScalar[GP_FILL] = LENGTH(fill) == 1;
     int result;
@@ -89,7 +82,7 @@ SEXP gpGammaSXP(SEXP gp) {
     return VECTOR_ELT(gp, GP_GAMMA);
 }
 
-double gpGamma(SEXP gp, int i, int* gpIsScalar) {
+double gpGamma(SEXP gp, int i) {
     SEXP gamma = gpGammaSXP(gp);
     gpIsScalar[GP_GAMMA] = LENGTH(gamma) == 1;
     return REAL(gamma)[i % LENGTH(gamma)];
@@ -99,7 +92,7 @@ SEXP gpLineTypeSXP(SEXP gp) {
     return VECTOR_ELT(gp, GP_LTY);
 }
 
-int gpLineType(SEXP gp, int i, int* gpIsScalar) {
+int gpLineType(SEXP gp, int i) {
     SEXP linetype = gpLineTypeSXP(gp);
     gpIsScalar[GP_LTY] = LENGTH(linetype) == 1;
     return GE_LTYpar(linetype, i % LENGTH(linetype));
@@ -109,7 +102,7 @@ SEXP gpLineWidthSXP(SEXP gp) {
     return VECTOR_ELT(gp, GP_LWD);
 }
 
-double gpLineWidth(SEXP gp, int i, int* gpIsScalar) {
+double gpLineWidth(SEXP gp, int i) {
     SEXP linewidth = gpLineWidthSXP(gp);
     gpIsScalar[GP_LWD] = LENGTH(linewidth) == 1;
     return REAL(linewidth)[i % LENGTH(linewidth)];
@@ -119,7 +112,7 @@ SEXP gpCexSXP(SEXP gp) {
     return VECTOR_ELT(gp, GP_CEX);
 }
 
-double gpCex(SEXP gp, int i, int* gpIsScalar) {
+double gpCex(SEXP gp, int i) {
     SEXP cex = gpCexSXP(gp);
     gpIsScalar[GP_CEX] = LENGTH(cex) == 1;
     return REAL(cex)[i % LENGTH(cex)];
@@ -129,7 +122,7 @@ SEXP gpFontSXP(SEXP gp) {
     return VECTOR_ELT(gp, GP_FONT);
 }
 
-int gpFont(SEXP gp, int i, int* gpIsScalar) {
+int gpFont(SEXP gp, int i) {
     SEXP font = gpFontSXP(gp);
     gpIsScalar[GP_FONT] = LENGTH(font) == 1;
     return INTEGER(font)[i % LENGTH(font)];
@@ -139,7 +132,7 @@ SEXP gpFontFamilySXP(SEXP gp) {
     return VECTOR_ELT(gp, GP_FONTFAMILY);
 }
 
-const char* gpFontFamily(SEXP gp, int i, int* gpIsScalar) {
+const char* gpFontFamily(SEXP gp, int i) {
     SEXP fontfamily = gpFontFamilySXP(gp);
     gpIsScalar[GP_FONTFAMILY] = LENGTH(fontfamily) == 1;
     return CHAR(STRING_ELT(fontfamily, i % LENGTH(fontfamily)));
@@ -149,7 +142,7 @@ SEXP gpAlphaSXP(SEXP gp) {
     return VECTOR_ELT(gp, GP_ALPHA);
 }
 
-double gpAlpha(SEXP gp, int i, int* gpIsScalar) {
+double gpAlpha(SEXP gp, int i) {
     SEXP alpha = gpAlphaSXP(gp);
     gpIsScalar[GP_ALPHA] = LENGTH(alpha) == 1;
     return REAL(alpha)[i % LENGTH(alpha)];
@@ -159,7 +152,7 @@ SEXP gpLineEndSXP(SEXP gp) {
     return VECTOR_ELT(gp, GP_LINEEND);
 }
 
-R_GE_lineend gpLineEnd(SEXP gp, int i, int* gpIsScalar) {
+R_GE_lineend gpLineEnd(SEXP gp, int i) {
     SEXP lineend = gpLineEndSXP(gp);
     gpIsScalar[GP_LINEEND] = LENGTH(lineend) == 1;
     return GE_LENDpar(lineend, i % LENGTH(lineend));
@@ -169,7 +162,7 @@ SEXP gpLineJoinSXP(SEXP gp) {
     return VECTOR_ELT(gp, GP_LINEJOIN);
 }
 
-R_GE_linejoin gpLineJoin(SEXP gp, int i, int* gpIsScalar) {
+R_GE_linejoin gpLineJoin(SEXP gp, int i) {
     SEXP linejoin = gpLineJoinSXP(gp);
     gpIsScalar[GP_LINEJOIN] = LENGTH(linejoin) == 1;
     return GE_LJOINpar(linejoin, i % LENGTH(linejoin));
@@ -179,7 +172,7 @@ SEXP gpLineMitreSXP(SEXP gp) {
     return VECTOR_ELT(gp, GP_LINEMITRE);
 }
 
-double gpLineMitre(SEXP gp, int i, int* gpIsScalar) {
+double gpLineMitre(SEXP gp, int i) {
     SEXP linemitre = gpLineMitreSXP(gp);
     gpIsScalar[GP_LINEMITRE] = LENGTH(linemitre) == 1;
     return REAL(linemitre)[i % LENGTH(linemitre)];
@@ -189,7 +182,7 @@ SEXP gpLexSXP(SEXP gp) {
     return VECTOR_ELT(gp, GP_LEX);
 }
 
-double gpLex(SEXP gp, int i, int* gpIsScalar) {
+double gpLex(SEXP gp, int i) {
     SEXP lex = gpLexSXP(gp);
     gpIsScalar[GP_LEX] = LENGTH(lex) == 1;
     return REAL(lex)[i % LENGTH(lex)];
@@ -225,32 +218,32 @@ static unsigned int combineAlpha(double alpha, int col)
 /* 
  * Generate an R_GE_gcontext from a gpar
  */
-void gcontextFromgpar(SEXP gp, int i, const pGEcontext gc, pGEDevDesc dd, int* gpScalars) 
+void gcontextFromgpar(SEXP gp, int i, const pGEcontext gc, pGEDevDesc dd) 
 {
     /* 
      * Combine gpAlpha with col and fill
      */
-    gc->col = combineAlpha(gpAlpha(gp, i, gpScalars), gpCol(gp, i, gpScalars));
-    gc->fill = combineAlpha(gpAlpha(gp, i, gpScalars), gpFill(gp, i, gpScalars));
-    gc->gamma = gpGamma(gp, i, gpScalars);
+    gc->col = combineAlpha(gpAlpha(gp, i), gpCol(gp, i));
+    gc->fill = combineAlpha(gpAlpha(gp, i), gpFill(gp, i));
+    gc->gamma = gpGamma(gp, i);
     /*
      * Combine gpLex with lwd
      * Also scale by GSS_SCALE (a "zoom" factor)
      */
-    gc->lwd = gpLineWidth(gp, i, gpScalars) * gpLex(gp, i, gpScalars) * 
+    gc->lwd = gpLineWidth(gp, i) * gpLex(gp, i) * 
 	REAL(gridStateElement(dd, GSS_SCALE))[0];
-    gc->lty = gpLineType(gp, i, gpScalars);
-    gc->lend = gpLineEnd(gp, i, gpScalars);
-    gc->ljoin = gpLineJoin(gp, i, gpScalars);
-    gc->lmitre = gpLineMitre(gp, i, gpScalars);
-    gc->cex = gpCex(gp, i, gpScalars);
+    gc->lty = gpLineType(gp, i);
+    gc->lend = gpLineEnd(gp, i);
+    gc->ljoin = gpLineJoin(gp, i);
+    gc->lmitre = gpLineMitre(gp, i);
+    gc->cex = gpCex(gp, i);
     /*
      * Scale by GSS_SCALE (a "zoom" factor)
      */
-    gc->ps = gpFontSize(gp, i, gpScalars) * REAL(gridStateElement(dd, GSS_SCALE))[0];
-    gc->lineheight = gpLineHeight(gp, i, gpScalars);
-    gc->fontface = gpFont(gp, i, gpScalars);
-    strcpy(gc->fontfamily, gpFontFamily(gp, i, gpScalars));
+    gc->ps = gpFontSize(gp, i) * REAL(gridStateElement(dd, GSS_SCALE))[0];
+    gc->lineheight = gpLineHeight(gp, i);
+    gc->fontface = gpFont(gp, i);
+    strcpy(gc->fontfamily, gpFontFamily(gp, i));
 }
 
 SEXP L_setGPar(SEXP gpars) 
@@ -377,53 +370,50 @@ void initGPar(pGEDevDesc dd)
 
 // Minimal primitive gc setters
 // These should only be called after gcontextFromgpar has been called once
-void updateGContext(SEXP gp, int i, const pGEcontext gc, pGEDevDesc dd, int* gpScalars) 
+void updateGContext(SEXP gp, int i, const pGEcontext gc, pGEDevDesc dd) 
 {
-    if (gpScalars[0] == -1) {
-        error(_("updateGContext should only be called after a call to gcontextFromgpar"));
+    if (!(gpIsScalar[GP_ALPHA] && gpIsScalar[GP_COL])) {
+        double alpha = gpAlpha(gp, i);
+        if (alpha == 1.0) gc->col = gpCol(gp, i);
+        else gc->col = combineAlpha(alpha, gpCol(gp, i));
     }
-    if (!(gpScalars[GP_ALPHA] && gpScalars[GP_COL])) {
-        double alpha = gpAlpha(gp, i, gpScalars);
-        if (alpha == 1.0) gc->col = gpCol(gp, i, gpScalars);
-        else gc->col = combineAlpha(alpha, gpCol(gp, i, gpScalars));
+    if (!(gpIsScalar[GP_ALPHA] && gpIsScalar[GP_FILL])) {
+        double alpha = gpAlpha(gp, i);
+        if (alpha == 1.0) gc->fill = gpFill(gp, i);
+        else gc->fill = combineAlpha(alpha, gpFill(gp, i));
     }
-    if (!(gpScalars[GP_ALPHA] && gpScalars[GP_FILL])) {
-        double alpha = gpAlpha(gp, i, gpScalars);
-        if (alpha == 1.0) gc->fill = gpFill(gp, i, gpScalars);
-        else gc->fill = combineAlpha(alpha, gpFill(gp, i, gpScalars));
+    if (!gpIsScalar[GP_GAMMA]) {
+        gc->gamma = gpGamma(gp, i);
     }
-    if (!gpScalars[GP_GAMMA]) {
-        gc->gamma = gpGamma(gp, i, gpScalars);
-    }
-    if (!(gpScalars[GP_LWD] && gpScalars[GP_LEX])) {
-        gc->lwd = gpLineWidth(gp, i, gpScalars) * gpLex(gp, i, gpScalars) * 
+    if (!(gpIsScalar[GP_LWD] && gpIsScalar[GP_LEX])) {
+        gc->lwd = gpLineWidth(gp, i) * gpLex(gp, i) * 
             REAL(gridStateElement(dd, GSS_SCALE))[0];
     }
-    if (!gpScalars[GP_LTY]) {
-        gc->lty = gpLineType(gp, i, gpScalars);
+    if (!gpIsScalar[GP_LTY]) {
+        gc->lty = gpLineType(gp, i);
     }
-    if (!gpScalars[GP_LINEEND]) {
-        gc->lend = gpLineEnd(gp, i, gpScalars);
+    if (!gpIsScalar[GP_LINEEND]) {
+        gc->lend = gpLineEnd(gp, i);
     }
-    if (!gpScalars[GP_LINEJOIN]) {
-        gc->ljoin = gpLineJoin(gp, i, gpScalars);
+    if (!gpIsScalar[GP_LINEJOIN]) {
+        gc->ljoin = gpLineJoin(gp, i);
     }
-    if (!gpScalars[GP_LINEMITRE]) {
-        gc->lmitre = gpLineMitre(gp, i, gpScalars);
+    if (!gpIsScalar[GP_LINEMITRE]) {
+        gc->lmitre = gpLineMitre(gp, i);
     }
-    if (!gpScalars[GP_CEX]) {
-        gc->cex = gpCex(gp, i, gpScalars);
+    if (!gpIsScalar[GP_CEX]) {
+        gc->cex = gpCex(gp, i);
     }
-    if (!gpScalars[GP_FONTSIZE]) {
-        gc->ps = gpFontSize(gp, i, gpScalars) * REAL(gridStateElement(dd, GSS_SCALE))[0];
+    if (!gpIsScalar[GP_FONTSIZE]) {
+        gc->ps = gpFontSize(gp, i) * REAL(gridStateElement(dd, GSS_SCALE))[0];
     }
-    if (!gpScalars[GP_LINEHEIGHT]) {
-        gc->lineheight = gpLineHeight(gp, i, gpScalars);
+    if (!gpIsScalar[GP_LINEHEIGHT]) {
+        gc->lineheight = gpLineHeight(gp, i);
     }
-    if (!gpScalars[GP_FONT]) {
-        gc->fontface = gpFont(gp, i, gpScalars);
+    if (!gpIsScalar[GP_FONT]) {
+        gc->fontface = gpFont(gp, i);
     }
-    if (!gpScalars[GP_FONTFAMILY]) {
-        strcpy(gc->fontfamily, gpFontFamily(gp, i, gpScalars));
+    if (!gpIsScalar[GP_FONTFAMILY]) {
+        strcpy(gc->fontfamily, gpFontFamily(gp, i));
     }
 }

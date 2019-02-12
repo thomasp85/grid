@@ -183,7 +183,7 @@ void copyViewportContext(LViewportContext vpc1, LViewportContext *vpc2)
 }
 
 void gcontextFromViewport(SEXP vp, const pGEcontext gc, pGEDevDesc dd) {
-    gcontextFromgpar(viewportgpar(vp), 0, gc, dd, GCSCALARS);
+    gcontextFromgpar(viewportgpar(vp), 0, gc, dd);
 }
 
 /* The idea is to produce a transformation for this viewport which
@@ -266,7 +266,7 @@ void calcViewportTransform(SEXP vp, SEXP parent, Rboolean incremental,
 	 * 
 	 * WAS gcontextFromViewport(parent, &parentgc);
 	 */
-	gcontextFromgpar(viewportParentGPar(vp), 0, &parentgc, dd, GCSCALARS);
+	gcontextFromgpar(viewportParentGPar(vp), 0, &parentgc, dd);
 	/* In order for the vp to get its vpl from a layout
 	 * it must have specified a layout.pos and the parent
 	 * must have a layout
