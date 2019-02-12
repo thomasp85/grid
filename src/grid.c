@@ -3404,6 +3404,7 @@ SEXP L_points(SEXP x, SEXP y, SEXP pch, SEXP size)
     double rotationAngle;
     double symbolSize;
     const void *vmax;
+    int gpIsScalar[15] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
     LViewportContext vpc;
     R_GE_gcontext gc;
     LTransform transform;
@@ -3416,8 +3417,8 @@ SEXP L_points(SEXP x, SEXP y, SEXP pch, SEXP size)
     getViewportTransform(currentvp, dd, 
 			 &vpWidthCM, &vpHeightCM, 
 			 transform, &rotationAngle);
-    gcontextFromgpar(currentgp, 0, &gc, dd);
     getViewportContext(currentvp, &vpc);
+    initGContext(currentgp, 0, &gc, dd, gpIsScalar);
     nx = unitLength(x); 
     npch = LENGTH(pch);
     nss = unitLength(size);
@@ -3426,7 +3427,7 @@ SEXP L_points(SEXP x, SEXP y, SEXP pch, SEXP size)
     xx = (double *) R_alloc(nx, sizeof(double));
     yy = (double *) R_alloc(nx, sizeof(double));
     for (i=0; i<nx; i++) {
-	updateGContext(currentgp, i, &gc, dd);
+	updateGContext(currentgp, i, &gc, dd, gpIsScalar);
 	transformLocn(x, y, i, vpc, &gc,
 		      vpWidthCM, vpHeightCM,
 		      dd,
@@ -3473,7 +3474,7 @@ SEXP L_points(SEXP x, SEXP y, SEXP pch, SEXP size)
 	     * rotations !!!
 	     */
 	    int ipch = NA_INTEGER /* -Wall */;
-	    updateGContext(currentgp, i, &gc, dd);
+	    updateGContext(currentgp, i, &gc, dd, gpIsScalar);
 	    symbolSize = ss[i % nss];
 	    if (R_FINITE(symbolSize)) {
 	        if (pType == 3) {
