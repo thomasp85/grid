@@ -433,34 +433,40 @@ void initGPar(pGEDevDesc dd)
 
 // Minimal primitive gc setters
 // These should only be called after gcontextFromgpar has been called once
-void initGContext(SEXP gp, int i, const pGEcontext gc, pGEDevDesc dd, int* gpIsScalar) 
+void initGContext(SEXP gp, int i, const pGEcontext gc, pGEDevDesc dd, 
+                  int* gpIsScalar, const pGEcontext gcCache) 
 {
     /* 
      * Combine gpAlpha with col and fill
      */
-    gc->col = combineAlpha(gpAlpha2(gp, i, gpIsScalar), gpCol2(gp, i, gpIsScalar));
-    gc->fill = combineAlpha(gpAlpha(gp, i), gpFill2(gp, i, gpIsScalar));
-    gc->gamma = gpGamma2(gp, i, gpIsScalar);
+    gcCache->col = gc->col = 
+        combineAlpha(gpAlpha2(gp, i, gpIsScalar), gpCol2(gp, i, gpIsScalar));
+    gcCache->fill = gc->fill = 
+        combineAlpha(gpAlpha(gp, i), gpFill2(gp, i, gpIsScalar));
+    gcCache->gamma = gc->gamma = gpGamma2(gp, i, gpIsScalar);
     /*
      * Combine gpLex with lwd
      * Also scale by GSS_SCALE (a "zoom" factor)
      */
-    gc->lwd = gpLineWidth2(gp, i, gpIsScalar) * gpLex2(gp, i, gpIsScalar) * 
-        REAL(gridStateElement(dd, GSS_SCALE))[0];
-    gc->lty = gpLineType2(gp, i, gpIsScalar);
-    gc->lend = gpLineEnd2(gp, i, gpIsScalar);
-    gc->ljoin = gpLineJoin2(gp, i, gpIsScalar);
-    gc->lmitre = gpLineMitre2(gp, i, gpIsScalar);
-    gc->cex = gpCex2(gp, i, gpIsScalar);
+    gcCache->lwd = gc->lwd = gpLineWidth2(gp, i, gpIsScalar) * 
+        gpLex2(gp, i, gpIsScalar) * REAL(gridStateElement(dd, GSS_SCALE))[0];
+    gcCache->lty = gc->lty = gpLineType2(gp, i, gpIsScalar);
+    gcCache->lend = gc->lend = gpLineEnd2(gp, i, gpIsScalar);
+    gcCache->ljoin = gc->ljoin = gpLineJoin2(gp, i, gpIsScalar);
+    gcCache->lmitre = gc->lmitre = gpLineMitre2(gp, i, gpIsScalar);
+    gcCache->cex = gc->cex = gpCex2(gp, i, gpIsScalar);
     /*
      * Scale by GSS_SCALE (a "zoom" factor)
      */
-    gc->ps = gpFontSize2(gp, i, gpIsScalar) * REAL(gridStateElement(dd, GSS_SCALE))[0];
-    gc->lineheight = gpLineHeight2(gp, i, gpIsScalar);
-    gc->fontface = gpFont2(gp, i, gpIsScalar);
+    gcCache->ps = gc->ps = gpFontSize2(gp, i, gpIsScalar) * 
+        REAL(gridStateElement(dd, GSS_SCALE))[0];
+    gcCache->lineheight = gc->lineheight = gpLineHeight2(gp, i, gpIsScalar);
+    gcCache->fontface = gc->fontface = gpFont2(gp, i, gpIsScalar);
     strcpy(gc->fontfamily, gpFontFamily2(gp, i, gpIsScalar));
+    strcpy(gcCache->fontfamily, gc->fontfamily);
 }
-void updateGContext(SEXP gp, int i, const pGEcontext gc, pGEDevDesc dd, int* gpIsScalar)
+void updateGContext(SEXP gp, int i, const pGEcontext gc, pGEDevDesc dd, 
+                    int* gpIsScalar, const pGEcontext gcCache)
 {
     if (gpIsScalar[0] == -1) {
         error(_("updateGContext must only be called after initGContext"));
@@ -469,44 +475,33 @@ void updateGContext(SEXP gp, int i, const pGEcontext gc, pGEDevDesc dd, int* gpI
         double alpha = gpAlpha(gp, i);
         if (alpha == 1.0) gc->col = gpCol(gp, i);
         else gc->col = combineAlpha(alpha, gpCol(gp, i));
+    } else {
+        gc->col = gcCache->col;
     }
     if (!(gpIsScalar[GP_ALPHA] && gpIsScalar[GP_FILL])) {
         double alpha = gpAlpha(gp, i);
         if (alpha == 1.0) gc->fill = gpFill(gp, i);
         else gc->fill = combineAlpha(alpha, gpFill(gp, i));
+    } else {
+        gc->fill = gcCache->fill;
     }
-    if (!gpIsScalar[GP_GAMMA]) {
-        gc->gamma = gpGamma(gp, i);
-    }
-    if (!(gpIsScalar[GP_LWD] && gpIsScalar[GP_LEX])) {
-        gc->lwd = gpLineWidth(gp, i) * gpLex(gp, i) * 
+    gc->gamma = gpIsScalar[GP_GAMMA] ? gcCache->gamma : gpGamma(gp, i);
+    gc->lwd = (gpIsScalar[GP_LWD] && gpIsScalar[GP_LEX]) ? gcCache->lwd :
+        gpLineWidth(gp, i) * gpLex(gp, i) * 
             REAL(gridStateElement(dd, GSS_SCALE))[0];
-    }
-    if (!gpIsScalar[GP_LTY]) {
-        gc->lty = gpLineType(gp, i);
-    }
-    if (!gpIsScalar[GP_LINEEND]) {
-        gc->lend = gpLineEnd(gp, i);
-    }
-    if (!gpIsScalar[GP_LINEJOIN]) {
-        gc->ljoin = gpLineJoin(gp, i);
-    }
-    if (!gpIsScalar[GP_LINEMITRE]) {
-        gc->lmitre = gpLineMitre(gp, i);
-    }
-    if (!gpIsScalar[GP_CEX]) {
-        gc->cex = gpCex(gp, i);
-    }
-    if (!gpIsScalar[GP_FONTSIZE]) {
-        gc->ps = gpFontSize(gp, i) * REAL(gridStateElement(dd, GSS_SCALE))[0];
-    }
-    if (!gpIsScalar[GP_LINEHEIGHT]) {
-        gc->lineheight = gpLineHeight(gp, i);
-    }
-    if (!gpIsScalar[GP_FONT]) {
-        gc->fontface = gpFont(gp, i);
-    }
-    if (!gpIsScalar[GP_FONTFAMILY]) {
+    gc->lty = gpIsScalar[GP_LTY] ? gcCache->lty : gpLineType(gp, i);
+    gc->lend = gpIsScalar[GP_LINEEND] ? gcCache->lend : gpLineEnd(gp, i);
+    gc->ljoin = gpIsScalar[GP_LINEJOIN] ? gcCache->ljoin : gpLineJoin(gp, i);
+    gc->lmitre = gpIsScalar[GP_LINEMITRE] ? gcCache->lmitre : gpLineMitre(gp, i);
+    gc->cex = gpIsScalar[GP_CEX] ? gcCache->cex : gpCex(gp, i);
+    gc->ps = gpIsScalar[GP_FONTSIZE] ? gcCache->ps : gpFontSize(gp, i) * 
+        REAL(gridStateElement(dd, GSS_SCALE))[0];
+    gc->lineheight = gpIsScalar[GP_LINEHEIGHT] ? gcCache->lineheight :
+        gpLineHeight(gp, i);
+    gc->fontface = gpIsScalar[GP_FONT] ? gcCache->fontface : gpFont(gp, i);
+    if (gpIsScalar[GP_FONTFAMILY]) {
+        strcpy(gc->fontfamily, gcCache->fontfamily);
+    } else {
         strcpy(gc->fontfamily, gpFontFamily(gp, i));
     }
 }
