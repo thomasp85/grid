@@ -639,3 +639,7 @@ SEXP validUnits(SEXP units);
 SEXP L_getGPar(void);
 SEXP L_setGPar(SEXP gpars);
     
+/* From simplify.c */
+int outsideSector(double x0, double y0, double x1, double y1, double *alpha0, 
+                  double *alpha1, double *xAnchor, double *yAnchor, 
+                  double epsilon);
