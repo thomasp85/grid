@@ -433,9 +433,10 @@ void initGPar(pGEDevDesc dd)
 
 // Minimal primitive gc setters
 // These should only be called after gcontextFromgpar has been called once
-void initGContext(SEXP gp, int i, const pGEcontext gc, pGEDevDesc dd, 
-                  int* gpIsScalar, const pGEcontext gcCache) 
+void initGContext(SEXP gp, const pGEcontext gc, pGEDevDesc dd, int* gpIsScalar, 
+                  const pGEcontext gcCache) 
 {
+    int i = 0;
     /* 
      * Combine gpAlpha with col and fill
      */
