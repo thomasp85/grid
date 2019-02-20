@@ -1958,6 +1958,13 @@ SEXP L_lines(SEXP x, SEXP y, SEXP index, SEXP arrow)
 	yy = (double *) R_alloc(nx, sizeof(double));
 	xold = NA_REAL;
 	yold = NA_REAL;
+	SEXP onePt = PROTECT(unit(1.0, 8));
+	double epsilon = transformWidthtoINCHES(onePt, 0, vpc, &gc, vpWidthCM, 
+                                         vpHeightCM, dd);
+	double xmin = DBL_MAX;
+	double ymin = DBL_MAX;
+	double xmax = -DBL_MAX;
+	double ymax = -DBL_MAX;
 	for (i=0; i<nx; i++) {
 	    transformLocn(x, y, INTEGER(indices)[i] - 1, vpc, &gc,
 			  vpWidthCM, vpHeightCM,
@@ -1967,7 +1974,11 @@ SEXP L_lines(SEXP x, SEXP y, SEXP index, SEXP arrow)
 	    /* The graphics engine only takes device coordinates
 	     */
 	    xx[i] = toDeviceX(xx[i], GE_INCHES, dd);
+	    xmin = xmin < xx[i] ? xmin : xx[i];
+	    xmax = xmax > xx[i] ? xmax : xx[i];
 	    yy[i] = toDeviceY(yy[i], GE_INCHES, dd);
+	    ymin = ymin < yy[i] ? ymin : yy[i];
+	    ymax = ymax > yy[i] ? ymax : yy[i];
 	    if ((R_FINITE(xx[i]) && R_FINITE(yy[i])) &&
 		!(R_FINITE(xold) && R_FINITE(yold)))
 	        start = i;
