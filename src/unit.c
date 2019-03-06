@@ -33,8 +33,9 @@ SEXP unit(double value, int unit)
   SET_VECTOR_ELT(u, 0, ScalarReal(value));
   SET_VECTOR_ELT(u, 1, R_NilValue);
   SET_VECTOR_ELT(u, 2, ScalarInteger(unit));
-  classgets(units, mkString("unit"));
-  UNPROTECT(1);
+  SEXP cl = PROTECT(mkString("unit"));
+  classgets(units, cl);
+  UNPROTECT(2);
   return units;
 }
 
@@ -53,7 +54,7 @@ SEXP unitScalar(SEXP unit, int index) {
 		SEXP newUnit = PROTECT(allocVector(VECSXP, 3));
 		SET_VECTOR_ELT(newUnit, 0, Rf_ScalarReal(REAL(unit)[i]));
 		SET_VECTOR_ELT(newUnit, 1, R_NilValue);
-		SET_VECTOR_ELT(newUnit, 2, Rf_ScalarInteger(INTEGER(getAttrib(unit, mkString("unit")))[0]));
+		SET_VECTOR_ELT(newUnit, 2, Rf_ScalarInteger(INTEGER(getAttrib(unit, install("unit")))[0]));
 		UNPROTECT(1);
 		return newUnit;
 	}
@@ -66,7 +67,7 @@ double unitValue(SEXP unit, int index) {
 }
 
 int unitUnit(SEXP unit, int index) {
-	if (isSimpleUnit(unit)) return INTEGER(getAttrib(unit, mkString("unit")))[0];
+	if (isSimpleUnit(unit)) return INTEGER(getAttrib(unit, install("unit")))[0];
 	return uUnit(unitScalar(unit, index));
 }
 
@@ -1593,7 +1594,7 @@ SEXP validData(SEXP data, SEXP validUnits, int n) {
 	return data;
 }
 void makeSimpleUnit(SEXP values, SEXP unit) {
-	setAttrib(values, mkString("unit"), unit);
+	setAttrib(values, install("unit"), unit);
 	SEXP classes = PROTECT(allocVector(STRSXP, 2));
 	SET_STRING_ELT(classes, 0, mkChar("simpleUnit"));
 	SET_STRING_ELT(classes, 1, mkChar("unit"));
@@ -1628,8 +1629,9 @@ SEXP constructUnits(SEXP amount, SEXP data, SEXP unit) {
 		SET_VECTOR_ELT(unit, 1, VECTOR_ELT(data, i % nData));
 		SET_VECTOR_ELT(unit, 2, Rf_ScalarInteger(pValUnits[i % nUnit]));
 	}
-	classgets(units, mkString("unit"));
-	UNPROTECT(2);
+	SEXP cl = PROTECT(mkString("unit"));
+	classgets(units, cl);
+	UNPROTECT(3);
 	return units;
 }
 SEXP asUnit(SEXP simpleUnit) {
@@ -1643,25 +1645,27 @@ SEXP asUnit(SEXP simpleUnit) {
 	int n = LENGTH(simpleUnit);
 	SEXP units = PROTECT(allocVector(VECSXP, n));
 	double* pAmount = REAL(simpleUnit);
-	SEXP valUnit = getAttrib(simpleUnit, mkString("unit"));
+	SEXP valUnit = getAttrib(simpleUnit, install("unit"));
 	for (int i = 0; i < n; i++) {
 		SEXP unit = SET_VECTOR_ELT(units, i, allocVector(VECSXP, 3));
 		SET_VECTOR_ELT(unit, 0, Rf_ScalarReal(pAmount[i]));
 		SET_VECTOR_ELT(unit, 1, R_NilValue);
 		SET_VECTOR_ELT(unit, 2, valUnit);
 	}
-	classgets(units, mkString("unit"));
-	UNPROTECT(1);
+	SEXP cl = PROTECT(mkString("unit"));
+	classgets(units, cl);
+	UNPROTECT(2);
 	return units;
 }
 SEXP conformingUnits(SEXP unitList) {
 	int n = LENGTH(unitList);
 	int unitType;
+	SEXP uAttrib = install("unit");
 	for (int i = 0; i < n; i++) {
 		SEXP unit = VECTOR_ELT(unitList, i);
 		if (!inherits(unit, "unit")) error(_("object is not a unit"));
 		if (!inherits(unit, "simpleUnit")) return R_NilValue;
-		int tempUnit = INTEGER(getAttrib(unit, mkString("unit")))[0];
+		int tempUnit = INTEGER(getAttrib(unit, uAttrib))[0];
 		if (i == 0) unitType = tempUnit;
 		else if (unitType != tempUnit) return R_NilValue;
 	}
@@ -1704,7 +1708,7 @@ int allAbsolute(SEXP units) {
 SEXP absoluteUnits(SEXP units) {
 	int n = unitLength(units);
 	if (isSimpleUnit(units)) {
-		if (isAbsolute(INTEGER(getAttrib(units, mkString("unit")))[0])) {
+		if (isAbsolute(INTEGER(getAttrib(units, install("unit")))[0])) {
 			return units;
 		}
 		units = PROTECT(allocVector(REALSXP, n));
@@ -1748,8 +1752,9 @@ SEXP absoluteUnits(SEXP units) {
 		SET_VECTOR_ELT(absolutes, i, unit);
 		UNPROTECT(1);
 	}
-	classgets(absolutes, mkString("unit"));
-	UNPROTECT(2);
+	SEXP cl = PROTECT(mkString("unit"));
+	classgets(absolutes, cl);
+	UNPROTECT(3);
 	return absolutes;
 }
 SEXP multUnit(SEXP unit, double value) {
@@ -1769,8 +1774,9 @@ SEXP multUnits(SEXP units, SEXP values) {
 		SET_VECTOR_ELT(multiplied, i, multUnit(unit, pValues[i % nValues]));
 		UNPROTECT(1);
 	}
-	classgets(multiplied, mkString("unit"));
-	UNPROTECT(1);
+	SEXP cl = PROTECT(mkString("unit"));
+	classgets(multiplied, cl);
+	UNPROTECT(2);
 	return multiplied;
 }
 SEXP addUnit(SEXP u1, SEXP u2) {
@@ -1832,9 +1838,10 @@ SEXP addUnit(SEXP u1, SEXP u2) {
 	} else {
 		SET_VECTOR_ELT(data, lengthData1, u2);
 	}
-	classgets(data, mkString("unit"));
+	SEXP cl = PROTECT(mkString("unit"));
+	classgets(data, cl);
 	
-	UNPROTECT(1);
+	UNPROTECT(2);
 	return result;
 }
 SEXP addUnits(SEXP u1, SEXP u2) {
@@ -1846,8 +1853,9 @@ SEXP addUnits(SEXP u1, SEXP u2) {
 		SET_VECTOR_ELT(added, i, addUnit(unit1, unit2));
 		UNPROTECT(2);
 	}
-	classgets(added, mkString("unit"));
-	UNPROTECT(1);
+	SEXP cl = PROTECT(mkString("unit"));
+	classgets(added, cl);
+	UNPROTECT(2);
 	return added;
 }
 SEXP flipUnits(SEXP units) {
@@ -1862,6 +1870,7 @@ SEXP summaryUnits(SEXP units, SEXP op_type) {
 	}
 	int type = INTEGER(op_type)[0];
 	SEXP out = PROTECT(allocVector(VECSXP, n));
+	SEXP cl = PROTECT(mkString("unit"));
 
 	int is_type[m];
 	int all_type = 1;
@@ -1925,9 +1934,9 @@ SEXP summaryUnits(SEXP units, SEXP op_type) {
 			}
 			UNPROTECT(1);
 		}
-		classgets(data, mkString("unit"));
+		classgets(data, cl);
 	}
-	classgets(out, mkString("unit"));
-	UNPROTECT(1);
+	classgets(out, cl);
+	UNPROTECT(2);
 	return out;
 }
