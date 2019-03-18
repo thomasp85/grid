@@ -3423,7 +3423,13 @@ SEXP L_points(SEXP x, SEXP y, SEXP pch, SEXP size)
     initGContext(currentgp, &gc, dd, gpIsScalar, &gcCache);
     nx = unitLength(x); 
     npch = LENGTH(pch);
-    nss = unitLength(size);
+    /*
+     * Need to take vector gpar elements into account that may affect unit size 
+     * calculations
+     */
+    nss = unitLength(size) * LENGTH(VECTOR_ELT(currentgp, GP_FONTSIZE)) * 
+        LENGTH(VECTOR_ELT(currentgp, GP_CEX)) * 
+        LENGTH(VECTOR_ELT(currentgp, GP_LINEHEIGHT));
     /* Convert the x and y values to CM locations */
     vmax = vmaxget();
     xx = (double *) R_alloc(nx, sizeof(double));
@@ -3442,6 +3448,7 @@ SEXP L_points(SEXP x, SEXP y, SEXP pch, SEXP size)
     }
     ss = (double *) R_alloc(nss, sizeof(double));
     for (i=0; i < nss; i++) {
+        updateGContext(currentgp, i, &gc, dd, gpIsScalar, &gcCache);
         ss[i] = transformWidthtoINCHES(size, i, vpc, &gc,
                                        vpWidthCM, vpHeightCM, dd);
         ss[i] = toDeviceWidth(ss[i], GE_INCHES, dd);
