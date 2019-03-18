@@ -1097,8 +1097,9 @@ SEXP L_convert(SEXP x, SEXP whatfrom,
     SEXP answer;
     double vpWidthCM, vpHeightCM;
     double rotationAngle;
+    int gpIsScalar[15] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
     LViewportContext vpc;
-    R_GE_gcontext gc;
+    R_GE_gcontext gc, gcCache;
     LTransform transform;
     SEXP currentvp, currentgp;
     int TOunit, FROMaxis, TOaxis;
@@ -1118,10 +1119,11 @@ SEXP L_convert(SEXP x, SEXP whatfrom,
 			 &vpWidthCM, &vpHeightCM, 
 			 transform, &rotationAngle);
     getViewportContext(currentvp, &vpc);
+    initGContext(currentgp, &gc, dd, gpIsScalar, &gcCache);
     nx = unitLength(x);
     PROTECT(answer = allocVector(REALSXP, nx));
     for (i=0; i<nx; i++) {
-        gcontextFromgpar(currentgp, i, &gc, dd);
+        updateGContext(currentgp, i, &gc, dd, gpIsScalar, &gcCache);
         TOunit = INTEGER(unitto)[i % LENGTH(unitto)];
         FROMaxis = INTEGER(whatfrom)[0];
         TOaxis = INTEGER(whatto)[0];
@@ -3691,8 +3693,9 @@ SEXP L_locnBounds(SEXP x, SEXP y, SEXP theta)
     double *xx, *yy;
     double vpWidthCM, vpHeightCM;
     double rotationAngle;
+    int gpIsScalar[15] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
     LViewportContext vpc;
-    R_GE_gcontext gc;
+    R_GE_gcontext gc, gcCache;
     LTransform transform;
     SEXP currentvp, currentgp;
     SEXP result = R_NilValue;
@@ -3711,6 +3714,7 @@ SEXP L_locnBounds(SEXP x, SEXP y, SEXP theta)
 			 &vpWidthCM, &vpHeightCM, 
 			 transform, &rotationAngle);
     getViewportContext(currentvp, &vpc);
+    initGContext(currentgp, &gc, dd, gpIsScalar, &gcCache);
     nx = unitLength(x); 
     ny = unitLength(y);
     if (ny > nx) 
@@ -3721,7 +3725,7 @@ SEXP L_locnBounds(SEXP x, SEXP y, SEXP theta)
 	xx = (double *) R_alloc(nx, sizeof(double));
 	yy = (double *) R_alloc(nx, sizeof(double));
 	for (i=0; i<nx; i++) {
-	    gcontextFromgpar(currentgp, i, &gc, dd);
+	    updateGContext(currentgp, i, &gc, dd, gpIsScalar, &gcCache);
 	    xx[i] = transformXtoINCHES(x, i, vpc, &gc,
 				       vpWidthCM, vpHeightCM, 
 				       dd);
