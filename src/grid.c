@@ -3445,6 +3445,7 @@ SEXP L_points(SEXP x, SEXP y, SEXP pch, SEXP size)
     nss = unitLength(size) * LENGTH(VECTOR_ELT(currentgp, GP_FONTSIZE)) * 
         LENGTH(VECTOR_ELT(currentgp, GP_CEX)) * 
         LENGTH(VECTOR_ELT(currentgp, GP_LINEHEIGHT));
+    nss = nss > nx ? nx : nss;
     /* Convert the x and y values to CM locations */
     vmax = vmaxget();
     xx = (double *) R_alloc(nx, sizeof(double));
