@@ -144,10 +144,6 @@
 #define uValue(X) REAL(VECTOR_ELT(X, 0))[0]
 #define uData(X) VECTOR_ELT(X, 1)
 #define uUnit(X) INTEGER(VECTOR_ELT(X, 2))[0]
-#define isAbsolute(X) ((X > 1000 || (X > 100 && X < 200) || (X < 19 && X > 0 && X != 4 && X != 6)))
-#define isArith(X) (X > 200 && X < 300)
-#define isStringUnit(X) (X >= 14 && X <= 17)
-#define isGrobUnit(X) (X >= 19 && X <= 24)
 
 typedef double LTransform[3][3];
 
@@ -213,6 +209,11 @@ typedef enum {
     L_MIN = 202,
     L_MAX = 203
 } LUnit;
+
+#define isAbsolute(X) ((X > 1000 || (X >= L_MYLINES && X <= L_MYSTRINGHEIGHT) || (X < L_GROBX && X > L_NPC && X != L_NATIVE && X != L_SNPC)))
+#define isArith(X) (X >= L_SUM && X <= L_MAX)
+#define isStringUnit(X) (X >= L_STRINGWIDTH && X <= L_STRINGDESCENT)
+#define isGrobUnit(X) (X >= L_GROBX && X <= L_GROBDESCENT)
 
 typedef enum {
     L_LEFT = 0,
