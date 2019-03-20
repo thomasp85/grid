@@ -633,6 +633,7 @@ absolute.units <- function(unit) {
 }
 
 # Lookup table for unit ids
+# This table MUST correspond to the enumeration in grid.h
 units <- list(
   '0' = "npc",
   '1' = "cm",
