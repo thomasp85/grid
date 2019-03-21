@@ -365,18 +365,25 @@ pSummary <- function(..., op) {
 }
 `[<-.unit` <- function(x, i, value) {
   if (!is.unit(value)) stop('value must be a unit object')
-  attr <- attributes(x)
-  if (is.simpleUnit(x)) {
-  	if (!(is.simpleUnit(value) && attr(x, 'unit') == attr(value, 'unit'))) {
-  	  x <- as.unit(x)
-  	  value <- as.unit(value)
-  	}
-  } else {
-  	value <- as.unit(value)
-  }
-  x <- unclass(x)
-  x[i] <- value
-  `attributes<-`(x, attr)
+    attr <- attributes(x)
+    simpleResult <- FALSE
+    if (is.simpleUnit(x)) {
+        if (!(is.simpleUnit(value) && attr(x, 'unit') == attr(value, 'unit'))) {
+            x <- as.unit(x)
+            value <- as.unit(value)
+        } else {
+            simpleResult <- TRUE
+        }
+    } else {
+        value <- as.unit(value)
+    }
+    x <- unclass(x)
+    x[i] <- value
+    if (simpleResult) {
+        `attributes<-`(x, attr)
+    } else {
+        `class<-`(x, "unit")
+    }
 }
 
 #########################
