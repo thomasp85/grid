@@ -329,9 +329,9 @@ pSummary <- function(..., op) {
   if (!is.null(identicalSimple)) {
   	res <- switch(
   		op,
-  		"sum" = Reduce(`+`, units),
-  		"min" = do.call(pmin, units),
-  		"max" = do.call(pmax, units)
+  		"sum" = Reduce(`+`, lapply(units, unclass)),
+  		"min" = do.call(pmin, lapply(units, unclass)),
+  		"max" = do.call(pmax, lapply(units, unclass))
   	)
   	return(`attributes<-`(res, list(
   		class = c("simpleUnit", "unit"), 
