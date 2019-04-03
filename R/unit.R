@@ -43,7 +43,7 @@ single_unit <- function(x, data, valid_units) {
       data,
       valid_units
     )
-  ), 'unit')
+  ), c("unit", "unit_v2"))
 }
 grid.convert <- function(x, unitTo, axisFrom="x", typeFrom="location",
                          axisTo=axisFrom, typeTo=typeFrom,
@@ -159,6 +159,7 @@ valid.units <- function(units) {
 
 # Printing, formating, and coercion
 unitDesc <- function(x, format = FALSE, ...) {
+  is.unit(x) # guard against old unit
   amount <- if (format) format(x[[1]], ...) else x[[1]]
   unit <- units[as.character(x[[3]])]
   if (unit %in% c('sum', 'min', 'max')) {
@@ -172,6 +173,7 @@ as.character.unit <- function(x, ...) {
   vapply(as.unit(x), unitDesc, character(1))
 }
 as.double.unit <- function(x, ...) {
+  is.unit(x) # guard against old unit
   vapply(unclass(x), `[[`, numeric(1), 1L)
 }
 as.vector.unit <- as.double.unit
@@ -185,7 +187,13 @@ print.unit <- function(x, ...) {
 as.double.simpleUnit <- function(x, ...) as.double(unclass(x), ...)
 as.vector.simpleUnit <- function(x, ...) as.double(unclass(x), ...)
 
-is.unit <- function(x) inherits(x, 'unit')
+is.unit <- function(x) {
+    is_unit <- inherits(x, 'unit_v2')
+    if (!is_unit && inherits(x, 'unit')) {
+        stop("old version of unit class is no longer allowed")
+    }
+    is_unit
+}
 is.simpleUnit <- function(x) inherits(x, 'simpleUnit')
 identicalUnits <- function(x) .Call(C_conformingUnits, x)
 
@@ -220,7 +228,7 @@ Summary.unit <- function(..., na.rm=FALSE) {
   		"max" = max(unlist(units)),
   	)
   	return(`attributes<-`(res, list(
-  		class = c("simpleUnit", "unit"), 
+  		class = c("simpleUnit", "unit", "unit_v2"), 
   		unit = identicalSimple
   	)))
   }
@@ -245,7 +253,7 @@ Summary.unit <- function(..., na.rm=FALSE) {
   } else {
     data <- x
   }
-  single_unit(1, `class<-`(data, 'unit'), ok)
+  single_unit(1, `class<-`(data, c('unit', 'unit_v2')), ok)
 }
 Ops.unit <- function(e1, e2) {
   ok <- switch(.Generic, "+"=TRUE, "-"=TRUE, "*"=TRUE, "/"=TRUE, FALSE)
@@ -334,7 +342,7 @@ pSummary <- function(..., op) {
   		"max" = do.call(pmax, lapply(units, unclass))
   	)
   	return(`attributes<-`(res, list(
-  		class = c("simpleUnit", "unit"), 
+  		class = c("simpleUnit", "unit", "unit_v2"), 
   		unit = identicalSimple
   	)))
   }
@@ -353,6 +361,7 @@ pSummary <- function(..., op) {
 # except at the top level
 
 `[.unit` <- function(x, index, top = TRUE) {
+  is.unit(x) # guard against old unit
   attr <- attributes(x)
   x <- unclass(x)
   n <- length(x)
@@ -364,6 +373,7 @@ pSummary <- function(..., op) {
   `attributes<-`(x, attr)
 }
 `[<-.unit` <- function(x, i, value) {
+  is.unit(x) # guard against old unit
   if (!is.unit(value)) stop('value must be a unit object')
     attr <- attributes(x)
     simpleResult <- FALSE
@@ -382,7 +392,7 @@ pSummary <- function(..., op) {
     if (simpleResult) {
         `attributes<-`(x, attr)
     } else {
-        `class<-`(x, "unit")
+        `class<-`(x, c("unit", "unit_v2"))
     }
 }
 
@@ -406,9 +416,9 @@ unit.c <- function(..., check = TRUE) {
   x <- list(...)
   identicalSimple <- identicalUnits(x)
   if (!is.null(identicalSimple)) {
-  	`attributes<-`(unlist(x), list(class = c('simpleUnit', 'unit'), unit = identicalSimple))
+  	`attributes<-`(unlist(x), list(class = c('simpleUnit', 'unit', 'unit_v2'), unit = identicalSimple))
   } else {
-  	`class<-`(unlist(lapply(x, as.unit), recursive = FALSE), 'unit')
+  	`class<-`(unlist(lapply(x, as.unit), recursive = FALSE), c('unit', 'unit_v2'))
   }
 }
 
