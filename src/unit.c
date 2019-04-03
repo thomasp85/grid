@@ -1559,7 +1559,9 @@ SEXP validData(SEXP data, SEXP validUnits, int n) {
 		int unitIsString = isStringUnit(singleUnit);
 		int unitIsGrob = isGrobUnit(singleUnit);
 		
-		if (unitIsString && !Rf_isString(singleData) && !Rf_isLanguage(singleData)) {
+		if (unitIsString && 
+                    !Rf_isString(singleData) && 
+                    !Rf_isExpression(singleData)) {
 			error(_("no string supplied for 'strwidth/height' unit"));
 		}
 		if (unitIsGrob) {

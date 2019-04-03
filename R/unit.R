@@ -28,9 +28,10 @@ unit <- function(x, units, data = NULL) {
   if (length(x) == 0 || length(units) == 0)
     stop("'x' and 'units' must have length > 0")
   if (is.null(data)) {
-  	data <- list(NULL)
-  } else if (is.character(data) || is.language(data) ||
-  		   is.grob(data) || inherits(data, "gPath")) {
+      data <- list(NULL)
+  } else if (is.language(data)) {
+      data <- list(as.expression(data))
+  } else if (is.character(data) || is.grob(data) || inherits(data, "gPath")) {
   	data <- list(data)
   }
   .Call(C_constructUnits, x, data, units)
@@ -380,9 +381,9 @@ pSummary <- function(..., op) {
     x <- unclass(x)
     x[i] <- value
     if (simpleResult) {
-        `attributes<-`(x, attr)
+        attributes(x) <- attr
     } else {
-        `class<-`(x, "unit")
+        class(x) <- "unit"
     }
 }
 
@@ -445,6 +446,7 @@ unit.length <- function(unit) {
 stringWidth <- function(string) {
     n <- length(string)
     if (is.language(string)) {
+        string <- as.expression(string)
         data <- vector("list", n)
         for (i in 1L:n)
             data[[i]] <- string[i]
@@ -457,6 +459,7 @@ stringWidth <- function(string) {
 stringHeight <- function(string) {
     n <- length(string)
     if (is.language(string)) {
+        string <- as.expression(string)
         data <- vector("list", n)
         for (i in 1L:n)
             data[[i]] <- string[i]
@@ -469,6 +472,7 @@ stringHeight <- function(string) {
 stringAscent <- function(string) {
     n <- length(string)
     if (is.language(string)) {
+        string <- as.expression(string)
         data <- vector("list", n)
         for (i in 1L:n)
             data[[i]] <- string[i]
@@ -481,6 +485,7 @@ stringAscent <- function(string) {
 stringDescent <- function(string) {
     n <- length(string)
     if (is.language(string)) {
+        string <- as.expression(string)
         data <- vector("list", n)
         for (i in 1L:n)
             data[[i]] <- string[i]
