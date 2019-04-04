@@ -269,6 +269,7 @@ Ops.unit <- function(e1, e2) {
       	e1 <- -as.vector(e1)
       	attributes(e1) <- attr
       } else {
+        is.unit(e1)  # guard against old unit
       	e1 <- .Call(C_flipUnits, e1)
       }
     }
@@ -294,6 +295,7 @@ Ops.unit <- function(e1, e2) {
   		unit <- value * as.vector(unit)
   		attributes(unit) <- attr
   	} else {
+  	    is.unit(e1)  # guard against old unit
   		unit <- .Call(C_multUnits, unit, value)
   	}
   	return(unit)

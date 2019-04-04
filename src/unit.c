@@ -1778,8 +1778,7 @@ SEXP multUnit(SEXP unit, double value) {
 	return mult;
 }
 SEXP multUnits(SEXP units, SEXP values) {
-    if (!inherits(units, "unit_v2")) error(_("old version of unit class is no longer allowed"));
-	int nValues = LENGTH(values);
+    int nValues = LENGTH(values);
 	int n = LENGTH(units) < nValues ? nValues : LENGTH(units);
 	SEXP multiplied = PROTECT(allocVector(VECSXP, n));
 	double *pValues = REAL(values);
@@ -1864,10 +1863,7 @@ SEXP addUnit(SEXP u1, SEXP u2) {
 	return result;
 }
 SEXP addUnits(SEXP u1, SEXP u2) {
-    if (!inherits(u1, "unit_v2") || !inherits(u2, "unit_v2")) {
-        error(_("old version of unit class is no longer allowed"));
-    }
-	int n = LENGTH(u1) < LENGTH(u2) ? LENGTH(u2) : LENGTH(u1);
+    int n = LENGTH(u1) < LENGTH(u2) ? LENGTH(u2) : LENGTH(u1);
 	SEXP added = PROTECT(allocVector(VECSXP, n));
 	for (int i = 0; i < n; i++) {
 		SEXP unit1 = PROTECT(unitScalar(u1, i));
