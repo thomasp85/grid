@@ -365,7 +365,7 @@ pSummary <- function(..., op) {
   `attributes<-`(x, attr)
 }
 `[<-.unit` <- function(x, i, value) {
-  if (!is.unit(value)) stop('value must be a unit object')
+    if (!is.unit(value)) stop('value must be a unit object')
     attr <- attributes(x)
     simpleResult <- FALSE
     if (is.simpleUnit(x)) {
@@ -385,6 +385,7 @@ pSummary <- function(..., op) {
     } else {
         class(x) <- "unit"
     }
+    x
 }
 
 #########################
