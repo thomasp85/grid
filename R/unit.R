@@ -171,7 +171,7 @@ unitDesc <- function(x, format = FALSE, ...) {
   }
 }
 as.character.unit <- function(x, ...) {
-  vapply(as.unit(x), unitDesc, character(1))
+  vapply(unclass(as.unit(x)), unitDesc, character(1))
 }
 as.double.unit <- function(x, ...) {
   is.unit(x) # guard against old unit
@@ -179,7 +179,7 @@ as.double.unit <- function(x, ...) {
 }
 as.vector.unit <- as.double.unit
 format.unit <- function(x, ...) {
-  vapply(as.unit(x), unitDesc, character(1), format = TRUE, ...)
+  vapply(unclass(as.unit(x)), unitDesc, character(1), format = TRUE, ...)
 }
 print.unit <- function(x, ...) {
   print(as.character(x), quote = FALSE, ...)
@@ -203,7 +203,7 @@ as.unit <- function(x) {
 }
 
 str.unit <- function(object, ...) {
-  object <- as.unit(object)
+  object <- unclass(as.unit(object))
   for (i in seq_along(object)) {
     unit <- object[[i]]
     cat('[[', i, ']] Amount: ', unit[[1]], '; Unit: ', units[[as.character(unit[[3]])]], '; Data: ', if (is.null(unit[[2]])) 'none' else as.character(unit[[2]]), '\n', sep = '')
@@ -375,6 +375,12 @@ pSummary <- function(..., op) {
   x <- x[index]
   `attributes<-`(x, attr)
 }
+`[[.unit` <- function(x, index, ...) {
+    if (length(index) != 1) {
+        stop("index must be of length 1", call = FALSE)
+    }
+    x[index]
+}
 `[<-.unit` <- function(x, i, value) {
     is.unit(x) # guard against old unit
     if (!is.unit(value)) stop('value must be a unit object')
@@ -409,7 +415,6 @@ pSummary <- function(..., op) {
     x[i] <- value
     x
 }
-
 #########################
 # "c"ombining unit objects
 #########################
