@@ -395,8 +395,18 @@ pSummary <- function(..., op) {
     if (simpleResult) {
         attributes(x) <- attr
     } else {
-        class(x) <- "unit"
+        class(x) <- c("unit", "unit_v2")
     }
+    x
+}
+`[[<-.unit` <- function(x, i, value) {
+    if (length(i) != 1) {
+        stop("index must be of length 1", call = FALSE)
+    }
+    if (length(value) != 1) {
+        stop("replacement must be of length 1", call = FALSE)
+    }
+    x[i] <- value
     x
 }
 
