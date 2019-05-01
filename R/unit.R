@@ -165,7 +165,10 @@ unitDesc <- function(x, format = FALSE, ...) {
   unit <- units[as.character(x[[3]])]
   if (unit %in% c('sum', 'min', 'max')) {
     paste0(if (amount == 1) '' else paste0(amount, '*'),
-           unit, '(', paste(lapply(x[[2]], unitDesc, format = format, ...), collapse = ', '), ')')
+           unit, '(',
+           paste(lapply(unclass(x[[2]]), unitDesc, format = format, ...),
+                 collapse = ', '),
+           ')')
   } else {
     paste0(amount, unit)
   }
