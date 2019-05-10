@@ -24,7 +24,7 @@
 <<echo=FALSE, results=hide>>=
 library(grDevices)
 library(stats) # for runif
-library(grid)
+library(grid2)
 ps.options(pointsize = 12)
 options(width = 60)
 @

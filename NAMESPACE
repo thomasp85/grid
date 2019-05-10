@@ -1,4 +1,4 @@
-useDynLib("grid", .registration = TRUE, .fixes = "C_")
+useDynLib("grid2", .registration = TRUE, .fixes = "C_")
 
 import(grDevices)
 importFrom(utils, str)

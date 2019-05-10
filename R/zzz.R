@@ -36,7 +36,7 @@ utils::globalVariables(c("n", "vp", "path"))
 .onLoad <- function(libname, pkgname)
 {
     ## want eval in C code to see unexported objects
-    environment(.GridEvalEnv) <- asNamespace("grid")
+    environment(.GridEvalEnv) <- asNamespace("grid2")
     .Call(C_initGrid, .GridEvalEnv)
     .grid.loaded <<- TRUE
 }
