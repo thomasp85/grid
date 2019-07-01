@@ -59,8 +59,7 @@ convertUnit <- function(x, unitTo, axisFrom="x", typeFrom="location",
     2L*(match(typeFrom, c("location", "dimension")) - 1L)
   whatto <- match(axisTo, c("x", "y")) - 1L +
     2L*(match(typeTo, c("location", "dimension")) - 1L)
-  if (!is.unit(x))
-    stop("'x' argument must be a unit object")
+  x <- upgradeUnit(x)
   if (is.na(whatfrom) || is.na(whatto))
     stop("invalid 'axis' or 'type'")
   value <- grid.Call(C_convert, x, as.integer(whatfrom),
@@ -160,25 +159,26 @@ valid.units <- function(units) {
 
 # Printing, formating, and coercion
 unitDesc <- function(x, format = FALSE, ...) {
-  is.unit(x) # guard against old unit
   amount <- if (format) format(x[[1]], ...) else x[[1]]
   unit <- units[as.character(x[[3]])]
   if (unit %in% c('sum', 'min', 'max')) {
     paste0(if (amount == 1) '' else paste0(amount, '*'),
-           unit, '(', paste(lapply(x[[2]], unitDesc, format = format, ...), collapse = ', '), ')')
+           unit, '(', paste(lapply(unclass(x[[2]]), unitDesc, format = format, ...), collapse = ', '), ')')
   } else {
     paste0(amount, unit)
   }
 }
 as.character.unit <- function(x, ...) {
+  x <- upgradeUnit(x) # guard against old unit
   vapply(unclass(as.unit(x)), unitDesc, character(1))
 }
 as.double.unit <- function(x, ...) {
-  is.unit(x) # guard against old unit
+  x <- upgradeUnit(x) # guard against old unit
   vapply(unclass(x), `[[`, numeric(1), 1L)
 }
 as.vector.unit <- as.double.unit
 format.unit <- function(x, ...) {
+  x <- upgradeUnit(x) # guard against old unit
   vapply(unclass(as.unit(x)), unitDesc, character(1), format = TRUE, ...)
 }
 print.unit <- function(x, ...) {
@@ -188,12 +188,35 @@ print.unit <- function(x, ...) {
 as.double.simpleUnit <- function(x, ...) as.double(unclass(x), ...)
 as.vector.simpleUnit <- function(x, ...) as.double(unclass(x), ...)
 
+upgradeUnit <- function(x) {
+    if (is.unit(x)) return(x)
+    UseMethod("upgradeUnit")
+}
+upgradeUnit.unit <- function(x) {
+    unit(unclass(x), attr(x, "unit"), attr(x, 'data'))
+}
+upgradeUnit.unit.list <- function(x) {
+    x <- unclass(x)
+    unit(
+        unlist(x),
+        vapply(x, attr, character(1), which = "unit"),
+        unlist(lapply(x, attr, which = "data"), recursive = FALSE)
+    )
+}
+upgradeUnit.unit.arithmetic <- function(x) {
+    fun <- .subset2(x, "fname")
+    arg1 <- .subset2(x, "arg1")
+    if (inherits(arg1, "unit")) arg1 <- upgradeUnit(arg1)
+    arg2 <- .subset2(x, "arg2")
+    if (inherits(arg2, "unit")) arg2 <- upgradeUnit(arg2)
+    
+    do.call(fun, list(arg1, arg2))
+}
+upgradeUnit.default <- function(x) {
+    stop("Not a unit object")
+}
 is.unit <- function(x) {
-    is_unit <- inherits(x, 'unit_v2')
-    if (!is_unit && inherits(x, 'unit')) {
-        stop("old version of unit class is no longer allowed")
-    }
-    is_unit
+    inherits(x, 'unit_v2')
 }
 is.simpleUnit <- function(x) inherits(x, 'simpleUnit')
 identicalUnits <- function(x) .Call(C_conformingUnits, x)
@@ -206,7 +229,7 @@ str.unit <- function(object, ...) {
   object <- unclass(as.unit(object))
   for (i in seq_along(object)) {
     unit <- object[[i]]
-    cat('[[', i, ']] Amount: ', unit[[1]], '; Unit: ', units[[as.character(unit[[3]])]], '; Data: ', if (is.null(unit[[2]])) 'none' else as.character(unit[[2]]), '\n', sep = '')
+    cat('[[', i, ']] Amount: ', unit[[1]], '; Unit: ', units[[as.character(unit[[3]])]], '; Data: ', if (is.null(unit[[2]])) 'none' else paste(as.character(unit[[2]]), collapse = ", "), '\n', sep = '')
   }
 }
 #########################
@@ -270,7 +293,7 @@ Ops.unit <- function(e1, e2) {
       	e1 <- -as.vector(e1)
       	attributes(e1) <- attr
       } else {
-        is.unit(e1)  # guard against old unit
+        e1 <- upgradeUnit(e1)  # guard against old unit
       	e1 <- .Call(C_flipUnits, e1)
       }
     }
@@ -296,7 +319,7 @@ Ops.unit <- function(e1, e2) {
   		unit <- value * as.vector(unit)
   		attributes(unit) <- attr
   	} else {
-  	    is.unit(e1)  # guard against old unit
+  	    unit <- upgradeUnit(unit)  # guard against old unit
   		unit <- .Call(C_multUnits, unit, value)
   	}
   	return(unit)
@@ -364,7 +387,7 @@ pSummary <- function(..., op) {
 # except at the top level
 
 `[.unit` <- function(x, index, top = TRUE) {
-  is.unit(x) # guard against old unit
+  x <- upgradeUnit(x) # guard against old unit
   attr <- attributes(x)
   x <- unclass(x)
   n <- length(x)
@@ -382,8 +405,7 @@ pSummary <- function(..., op) {
     x[index]
 }
 `[<-.unit` <- function(x, i, value) {
-    is.unit(x) # guard against old unit
-    if (!is.unit(value)) stop('value must be a unit object')
+    x <- upgradeUnit(x) # guard against old unit
     attr <- attributes(x)
     simpleResult <- FALSE
     if (is.simpleUnit(x)) {
