@@ -23,6 +23,10 @@
 # More complicated units are of the form 'unit(1, "string", "a string")'
 # or 'unit(1, "grob", a.grob)'
 unit <- function(x, units, data = NULL) {
+  # Old units passed to a grob will get passed on to unit() and need to be 
+  # upgraded instead of converted to the default unit
+  if (inherits(x, 'unit') && !is.unit(x)) return(upgradeUnit(x))
+
   x <- as.numeric(x)
   units <- as.character(units)
   if (length(x) == 0 || length(units) == 0)
