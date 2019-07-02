@@ -44,7 +44,16 @@ SEXP unit(double value, int unit)
 int isSimpleUnit(SEXP unit) {
 	return inherits(unit, "simpleUnit");
 }
-
+int isNewUnit(SEXP unit) {
+    return inherits(unit, "unit_v2");
+}
+SEXP upgradeUnit(SEXP unit) {
+    SEXP upgradeFn = PROTECT(findFun(install("upgradeUnit"), R_gridEvalEnv));
+    SEXP R_fcall = PROTECT(lang2(upgradeFn, unit));
+    SEXP unit2 = PROTECT(eval(R_fcall, R_gridEvalEnv));
+    UNPROTECT(3);
+    return unit2;
+}
 /* Accessor functions for unit objects
  */
 /*
@@ -60,7 +69,12 @@ SEXP unitScalar(SEXP unit, int index) {
 		UNPROTECT(1);
 		return newUnit;
 	}
-	return VECTOR_ELT(unit, i);
+	if (isNewUnit(unit)) return VECTOR_ELT(unit, i);
+	// Very inefficient but doing it only for backwards compatibility
+	SEXP unit2 = PROTECT(upgradeUnit(unit));
+	SEXP res = PROTECT(VECTOR_ELT(unit2, i));
+	UNPROTECT(2);
+	return res;
 }
 
 double unitValue(SEXP unit, int index) {
