@@ -171,6 +171,11 @@ unitDesc <- function(x, format = FALSE, ...) {
     paste0(amount, unit)
   }
 }
+unitType <- function(x) {
+    x <- upgradeUnit(x)
+    unit <- vapply(unclass(x), `[[`, integer(1), 3)
+    unlist(units[as.character(unit)], use.names = FALSE)
+}
 as.character.unit <- function(x, ...) {
   x <- upgradeUnit(x) # guard against old unit
   vapply(unclass(as.unit(x)), unitDesc, character(1))

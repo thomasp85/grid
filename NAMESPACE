@@ -33,6 +33,7 @@ export(
 
        "unit",
        "is.unit",
+       "unitType",
        "unit.c", "unit.length", "unit.pmax", "unit.pmin", "unit.psum", "unit.rep",
 
        "stringWidth", "stringHeight", "stringAscent", "stringDescent",
