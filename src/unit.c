@@ -72,7 +72,7 @@ SEXP unitScalar(SEXP unit, int index) {
 	if (isNewUnit(unit)) return VECTOR_ELT(unit, i);
 	// Very inefficient but doing it only for backwards compatibility
 	SEXP unit2 = PROTECT(upgradeUnit(unit));
-	SEXP res = PROTECT(VECTOR_ELT(unit2, i));
+	SEXP res = PROTECT(unitScalar(unit2, i));
 	UNPROTECT(2);
 	return res;
 }
@@ -95,7 +95,8 @@ SEXP unitData(SEXP unit, int index) {
 /* Old alternative to LENGTH when using that didn't work on all unit struct
  */
 int unitLength(SEXP u) {
-  return LENGTH(u);
+  if (isNewUnit(u)) return LENGTH(u);
+  return LENGTH(upgradeUnit(u));
 }
 
 

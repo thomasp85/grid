@@ -208,12 +208,7 @@ upgradeUnit.unit <- function(x) {
     unit(unclass(x), attr(x, "unit"), attr(x, 'data'))
 }
 upgradeUnit.unit.list <- function(x) {
-    x <- unclass(x)
-    unit(
-        unlist(x),
-        vapply(x, attr, character(1), which = "unit"),
-        unlist(lapply(x, attr, which = "data"), recursive = FALSE)
-    )
+    do.call(unit.c, lapply(unclass(x), upgradeUnit))
 }
 upgradeUnit.unit.arithmetic <- function(x) {
     fun <- .subset2(x, "fname")
@@ -238,6 +233,7 @@ as.unit <- function(x) {
 }
 
 str.unit <- function(object, ...) {
+  object <- upgradeUnit(object)
   object <- unclass(as.unit(object))
   for (i in seq_along(object)) {
     unit <- object[[i]]
