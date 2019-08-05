@@ -268,8 +268,9 @@ Summary.unit <- function(..., na.rm=FALSE) {
   # a single unit object
   x <- unlist(lapply(units, as.unit), recursive = FALSE)
   
-  matchUnits <- .Call(C_matchUnit, x, ok)
+  matchUnits <- .Call(C_matchUnit, `class<-`(x, c('unit', 'unit_v2')), ok)
   nMatches <- length(matchUnits)
+  
   if (nMatches != 0) {
     data <- lapply(x, `[[`, 2L)
     amount <- vapply(x, .subset2, numeric(1), 1L)[matchUnits]
