@@ -433,3 +433,7 @@ S3method("grid.revert", "default")
 S3method("grid.revert", "grob")
 S3method("grid.revert", "character")
 S3method("grid.revert", "gPath")
+
+S3method("upgradeUnit", "unit")
+S3method("upgradeUnit", "unit.arithmetic")
+S3method("upgradeUnit", "unit.list")
