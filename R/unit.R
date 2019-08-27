@@ -267,16 +267,17 @@ Summary.unit <- function(..., na.rm=FALSE) {
   # NOTE that this call to unit.c makes sure that arg1 is
   # a single unit object
   x <- unlist(lapply(units, as.unit), recursive = FALSE)
-  
-  matchUnits <- .Call(C_matchUnit, `class<-`(x, c('unit', 'unit_v2')), ok)
+  class(x) <- c('unit', 'unit_v2')
+  matchUnits <- .Call(C_matchUnit, x, ok)
+  x <- unclass(x)
   nMatches <- length(matchUnits)
   
   if (nMatches != 0) {
-    data <- lapply(x, `[[`, 2L)
+    data <- lapply(x, .subset2, 2L)
     amount <- vapply(x, .subset2, numeric(1), 1L)[matchUnits]
-    matchData <- unlist(data[matchUnits], recursive = FALSE)
+    matchData <- unclass(unlist(data[matchUnits], recursive = FALSE))
     for (i in seq_along(amount)) {
-      if (amount[i] != 1) matchData[[i]] <- matchData[[i]] * amount[i]
+      if (amount[i] != 1) matchData[[i]][[1]] <- matchData[[i]][[1]] * amount[i]
     }
     if (nMatches == length(x)) {
       data <- matchData
