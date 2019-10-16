@@ -177,6 +177,7 @@ unitDesc <- function(x, format = FALSE, ...) {
 }
 unitType <- function(x) {
     x <- upgradeUnit(x)
+    x <- as.unit(x)
     unit <- vapply(unclass(x), `[[`, integer(1), 3)
     unlist(units[as.character(unit)], use.names = FALSE)
 }
