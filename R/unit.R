@@ -177,9 +177,12 @@ unitDesc <- function(x, format = FALSE, ...) {
 }
 unitType <- function(x) {
     x <- upgradeUnit(x)
-    x <- as.unit(x)
-    unit <- vapply(unclass(x), `[[`, integer(1), 3)
-    unlist(units[as.character(unit)], use.names = FALSE)
+    if (is.simpleUnit(x)) {
+        rep_len(units[[as.character(attr(x, "unit"))]], length(x))
+    } else {
+        unit <- vapply(unclass(x), `[[`, integer(1), 3)
+        unlist(units[as.character(unit)], use.names = FALSE)
+    }
 }
 as.character.unit <- function(x, ...) {
   x <- upgradeUnit(x) # guard against old unit
