@@ -257,6 +257,7 @@ str.unit <- function(object, ...) {
 
 Summary.unit <- function(..., na.rm=FALSE) {
     units <- list(...)
+    units <- units[!vapply(units, is.null, logical(1))]
     ok <- switch(.Generic, "sum" = 201L, "min" = 202L, "max" = 203L, 0L)
     if (ok == 0)
         stop(gettextf("'Summary' function '%s' not meaningful for units",
