@@ -23,32 +23,32 @@
 # More complicated units are of the form 'unit(1, "string", "a string")'
 # or 'unit(1, "grob", a.grob)'
 unit <- function(x, units, data = NULL) {
-  # Old units passed to a grob will get passed on to unit() and need to be 
-  # upgraded instead of converted to the default unit
-  if (inherits(x, 'unit') && !is.unit(x)) return(upgradeUnit(x))
+    # Old units passed to a grob will get passed on to unit() and need to be 
+    # upgraded instead of converted to the default unit
+    if (inherits(x, 'unit') && !is.unit(x)) return(upgradeUnit(x))
 
-  x <- as.numeric(x)
-  units <- as.character(units)
-  if (length(x) == 0 || length(units) == 0)
-    stop("'x' and 'units' must have length > 0")
-  if (is.null(data)) {
-      data <- list(NULL)
-  } else if (is.language(data)) {
-      data <- list(as.expression(data))
-  } else if (is.character(data) || is.grob(data) || inherits(data, "gPath")) {
-  	data <- list(data)
-  }
-  .Call(C_constructUnits, x, data, units)
+    x <- as.numeric(x)
+    units <- as.character(units)
+    if (length(x) == 0 || length(units) == 0)
+        stop("'x' and 'units' must have length > 0")
+    if (is.null(data)) {
+        data <- list(NULL)
+    } else if (is.language(data)) {
+        data <- list(as.expression(data))
+    } else if (is.character(data) || is.grob(data) || inherits(data, "gPath")) {
+    	data <- list(data)
+    }
+    .Call(C_constructUnits, x, data, units)
 }
 
 single_unit <- function(x, data, valid_units) {
-  `class<-`(list(
-    list(
-      x,
-      data,
-      valid_units
-    )
-  ), c("unit", "unit_v2"))
+    `class<-`(list(
+        list(
+            x,
+            data,
+            valid_units
+        )
+    ), c("unit", "unit_v2"))
 }
 grid.convert <- function(x, unitTo, axisFrom="x", typeFrom="location",
                          axisTo=axisFrom, typeTo=typeFrom,
@@ -163,17 +163,17 @@ valid.units <- function(units) {
 
 # Printing, formating, and coercion
 unitDesc <- function(x, format = FALSE, ...) {
-  amount <- if (format) format(x[[1]], ...) else x[[1]]
-  unit <- units[as.character(x[[3]])]
-  if (unit %in% c('sum', 'min', 'max')) {
-    paste0(if (amount == 1) '' else paste0(amount, '*'),
-           unit, '(',
-           paste(lapply(unclass(x[[2]]), unitDesc, format = format, ...),
-                 collapse = ', '),
-           ')')
-  } else {
-    paste0(amount, unit)
-  }
+    amount <- if (format) format(x[[1]], ...) else x[[1]]
+    unit <- units[as.character(x[[3]])]
+    if (unit %in% c('sum', 'min', 'max')) {
+        paste0(if (amount == 1) '' else paste0(amount, '*'),
+               unit, '(',
+               paste(lapply(unclass(x[[2]]), unitDesc, format = format, ...),
+                     collapse = ', '),
+               ')')
+    } else {
+        paste0(amount, unit)
+    }
 }
 
 unitType <- function(x) {
@@ -187,21 +187,21 @@ unitType <- function(x) {
 }
 
 as.character.unit <- function(x, ...) {
-  x <- upgradeUnit(x) # guard against old unit
-  vapply(unclass(as.unit(x)), unitDesc, character(1))
+    x <- upgradeUnit(x) # guard against old unit
+    vapply(unclass(as.unit(x)), unitDesc, character(1))
 }
 as.double.unit <- function(x, ...) {
-  x <- upgradeUnit(x) # guard against old unit
-  vapply(unclass(x), `[[`, numeric(1), 1L)
+    x <- upgradeUnit(x) # guard against old unit
+    vapply(unclass(x), `[[`, numeric(1), 1L)
 }
 as.vector.unit <- as.double.unit
 format.unit <- function(x, ...) {
-  x <- upgradeUnit(x) # guard against old unit
-  vapply(unclass(as.unit(x)), unitDesc, character(1), format = TRUE, ...)
+    x <- upgradeUnit(x) # guard against old unit
+    vapply(unclass(as.unit(x)), unitDesc, character(1), format = TRUE, ...)
 }
 print.unit <- function(x, ...) {
-  print(as.character(x), quote = FALSE, ...)
-  invisible(x)
+    print(as.character(x), quote = FALSE, ...)
+    invisible(x)
 }
 as.double.simpleUnit <- function(x, ...) as.double(unclass(x), ...)
 as.vector.simpleUnit <- function(x, ...) as.double(unclass(x), ...)
@@ -239,157 +239,164 @@ as.unit <- function(x) {
 }
 
 str.unit <- function(object, ...) {
-  object <- upgradeUnit(object)
-  object <- unclass(as.unit(object))
-  for (i in seq_along(object)) {
-    unit <- object[[i]]
-    cat('[[', i, ']] Amount: ', unit[[1]], '; Unit: ', units[[as.character(unit[[3]])]], '; Data: ', if (is.null(unit[[2]])) 'none' else paste(as.character(unit[[2]]), collapse = ", "), '\n', sep = '')
-  }
+    object <- upgradeUnit(object)
+    object <- unclass(as.unit(object))
+    for (i in seq_along(object)) {
+      unit <- object[[i]]
+      cat('[[', i, ']] Amount: ', unit[[1]], '; Unit: ', 
+          units[[as.character(unit[[3]])]], '; Data: ', 
+          if (is.null(unit[[2]])) 
+              'none' 
+          else 
+              paste(as.character(unit[[2]]), collapse = ", "), '\n', sep = '')
+    }
 }
 #########################
 # UNIT ARITHMETIC STUFF
 #########################
 
 Summary.unit <- function(..., na.rm=FALSE) {
-  units <- list(...)
-  ok <- switch(.Generic, "sum" = 201L, "min" = 202L, "max" = 203L, 0L)
-  if (ok == 0)
-  	stop(gettextf("'Summary' function '%s' not meaningful for units",
-  				  .Generic), domain = NA)
-  # Optimise for simple units
-  identicalSimple <- identicalUnits(units)
-  if (!is.null(identicalSimple)) {
-  	res <- switch(
-  		.Generic,
-  		"sum" = sum(unlist(units)),
-  		"min" = min(unlist(units)),
-  		"max" = max(unlist(units)),
-  	)
-  	return(`attributes<-`(res, list(
-  		class = c("simpleUnit", "unit", "unit_v2"), 
-  		unit = identicalSimple
-  	)))
-  }
-  # NOTE that this call to unit.c makes sure that arg1 is
-  # a single unit object
-  x <- unlist(lapply(units, as.unit), recursive = FALSE)
-  class(x) <- c('unit', 'unit_v2')
-  matchUnits <- .Call(C_matchUnit, x, ok)
-  x <- unclass(x)
-  nMatches <- length(matchUnits)
-  
-  if (nMatches != 0) {
-    data <- lapply(x, .subset2, 2L)
-    amount <- vapply(x, .subset2, numeric(1), 1L)[matchUnits]
-    matchData <- unclass(unlist(data[matchUnits], recursive = FALSE))
-    for (i in seq_along(amount)) {
-      if (amount[i] != 1) matchData[[i]][[1]] <- matchData[[i]][[1]] * amount[i]
+    units <- list(...)
+    ok <- switch(.Generic, "sum" = 201L, "min" = 202L, "max" = 203L, 0L)
+    if (ok == 0)
+        stop(gettextf("'Summary' function '%s' not meaningful for units",
+                      .Generic), domain = NA)
+    # Optimise for simple units
+    identicalSimple <- identicalUnits(units)
+    if (!is.null(identicalSimple)) {
+        res <- switch(
+            .Generic,
+            "sum" = sum(unlist(units)),
+            "min" = min(unlist(units)),
+            "max" = max(unlist(units)),
+        )
+        return(`attributes<-`(res, list(
+            class = c("simpleUnit", "unit", "unit_v2"), 
+            unit = identicalSimple
+        )))
     }
-    if (nMatches == length(x)) {
-      data <- matchData
+    # NOTE that this call to unit.c makes sure that arg1 is
+    # a single unit object
+    x <- unlist(lapply(units, as.unit), recursive = FALSE)
+    class(x) <- c('unit', 'unit_v2')
+    matchUnits <- .Call(C_matchUnit, x, ok)
+    x <- unclass(x)
+    nMatches <- length(matchUnits)
+    
+    if (nMatches != 0) {
+        data <- lapply(x, .subset2, 2L)
+        amount <- vapply(x, .subset2, numeric(1), 1L)[matchUnits]
+        matchData <- unclass(unlist(data[matchUnits], recursive = FALSE))
+        for (i in seq_along(amount)) {
+            if (amount[i] != 1) 
+                matchData[[i]][[1]] <- matchData[[i]][[1]] * amount[i]
+        }
+        if (nMatches == length(x)) {
+            data <- matchData
+        } else {
+            data <- c(x[-matchUnits], matchData)
+        }
     } else {
-      data <- c(x[-matchUnits], matchData)
+        data <- x
     }
-  } else {
-    data <- x
-  }
-  single_unit(1, `class<-`(data, c('unit', 'unit_v2')), ok)
+    single_unit(1, `class<-`(data, c('unit', 'unit_v2')), ok)
 }
 Ops.unit <- function(e1, e2) {
-  ok <- switch(.Generic, "+"=TRUE, "-"=TRUE, "*"=TRUE, "/"=TRUE, FALSE)
-  if (!ok)
-    stop(gettextf("operator '%s' not meaningful for units", .Generic),
-         domain = NA)
-  # Unary
-  if (missing(e2)) {
-    if (.Generic %in% c('*', '/')) stop("'*' or '/' cannot be used as a unary operator")
+    ok <- switch(.Generic, "+"=TRUE, "-"=TRUE, "*"=TRUE, "/"=TRUE, FALSE)
+    if (!ok)
+        stop(gettextf("operator '%s' not meaningful for units", .Generic),
+             domain = NA)
+    # Unary
+    if (missing(e2)) {
+        if (.Generic %in% c('*', '/')) 
+            stop("'*' or '/' cannot be used as a unary operator")
+        if (.Generic == '-') {
+            if (is.simpleUnit(e1)) {
+                attr <- attributes(e1)
+                e1 <- -as.vector(e1)
+                attributes(e1) <- attr
+            } else {
+                e1 <- upgradeUnit(e1)  # guard against old unit
+                e1 <- .Call(C_flipUnits, e1)
+            }
+        }
+        return(e1)
+    }
+    # Multiply
+    if (.Generic %in% c("*", "/")) {
+        # can only multiply a unit by a scalar
+        if (nzchar(.Method[1L])) {
+            if (nzchar(.Method[2L])) stop("only one operand may be a unit")
+            if (!is.numeric(e2)) stop("non-unit operand must be numeric")
+            unit <- e1
+            value <- e2
+        } else {
+            if (!is.numeric(e1)) stop("non-unit operand must be numeric")
+            if (.Generic == "/") stop("can't divide with a unit")
+            unit <- e2
+            value <- e1
+        }
+        if (.Generic == "/") value <- 1 / value
+        if (is.simpleUnit(unit)) {
+            attr <- attributes(unit)
+            unit <- value * as.vector(unit)
+            attributes(unit) <- attr
+        } else {
+            unit <- upgradeUnit(unit)  # guard against old unit
+            unit <- .Call(C_multUnits, unit, value)
+        }
+        return(unit)
+    }
+    # Add and sub remains
+    if (!nzchar(.Method[1L]) && !nzchar(.Method[2L])) {
+        stop("both operands must be units")
+    }
+    if ((is.simpleUnit(e1) && is.simpleUnit(e2)) && (attr(e1, 'unit') == attr(e2, 'unit'))) {
+        attr <- attributes(e1)
+        unit <- switch(
+            .Generic, 
+            "-" = as.vector(e1) - as.vector(e2), 
+            "+" = as.vector(e1) + as.vector(e2)
+        )
+        return(`attributes<-`(unit, attr))
+    }
+    # Convert subtraction to addition
     if (.Generic == '-') {
-      if (is.simpleUnit(e1)) {
-      	attr <- attributes(e1)
-      	e1 <- -as.vector(e1)
-      	attributes(e1) <- attr
-      } else {
-        e1 <- upgradeUnit(e1)  # guard against old unit
-      	e1 <- .Call(C_flipUnits, e1)
-      }
+        e2 <- -e2
     }
-    return(e1)
-  }
-  # Multiply
-  if (.Generic %in% c("*", "/")) {
-    # can only multiply a unit by a scalar
-    if (nzchar(.Method[1L])) {
-      if (nzchar(.Method[2L])) stop("only one operand may be a unit")
-      if (!is.numeric(e2)) stop("non-unit operand must be numeric")
-      unit <- e1
-      value <- e2
-    } else {
-      if (!is.numeric(e1)) stop("non-unit operand must be numeric")
-      if (.Generic == "/") stop("can't divide with a unit")
-    	unit <- e2
-    	value <- e1
-    }
-  	if (.Generic == "/") value <- 1 / value
-  	if (is.simpleUnit(unit)) {
-  		attr <- attributes(unit)
-  		unit <- value * as.vector(unit)
-  		attributes(unit) <- attr
-  	} else {
-  	    unit <- upgradeUnit(unit)  # guard against old unit
-  		unit <- .Call(C_multUnits, unit, value)
-  	}
-  	return(unit)
-  }
-  # Add and sub remains
-  if (!nzchar(.Method[1L]) && !nzchar(.Method[2L])) {
-    stop("both operands must be units")
-  }
-  if ((is.simpleUnit(e1) && is.simpleUnit(e2)) && (attr(e1, 'unit') == attr(e2, 'unit'))) {
-  	attr <- attributes(e1)
-  	unit <- switch(
-  		.Generic, 
-  		"-" = as.vector(e1) - as.vector(e2), 
-  		"+" = as.vector(e1) + as.vector(e2)
-  	)
-  	return(`attributes<-`(unit, attr))
-  }
-  # Convert subtraction to addition
-  if (.Generic == '-') {
-  	e2 <- -e2
-  }
-  .Call(C_addUnits, as.unit(e1), as.unit(e2))
+    .Call(C_addUnits, as.unit(e1), as.unit(e2))
 }
 
 unit.pmin <- function(...) {
-  pSummary(..., op = 'min')
+    pSummary(..., op = 'min')
 }
 
 unit.pmax <- function(...) {
-  pSummary(..., op = 'max')
+    pSummary(..., op = 'max')
 }
 
 unit.psum <- function(...) {
-  pSummary(..., op = 'sum')
+    pSummary(..., op = 'sum')
 }
 
 pSummary <- function(..., op) {
-  units <- list(...)
-  # optimisation for simple units
-  identicalSimple <- identicalUnits(units)
-  if (!is.null(identicalSimple)) {
-  	res <- switch(
-  		op,
-  		"sum" = Reduce(`+`, lapply(units, unclass)),
-  		"min" = do.call(pmin, lapply(units, unclass)),
-  		"max" = do.call(pmax, lapply(units, unclass))
-  	)
-  	return(`attributes<-`(res, list(
-  		class = c("simpleUnit", "unit", "unit_v2"), 
-  		unit = identicalSimple
-  	)))
-  }
-  op <- switch(op, sum = 201L, min = 202L, max = 203L)
-  .Call(C_summaryUnits, units, op)
+    units <- list(...)
+    # optimisation for simple units
+    identicalSimple <- identicalUnits(units)
+    if (!is.null(identicalSimple)) {
+        res <- switch(
+            op,
+            "sum" = Reduce(`+`, lapply(units, unclass)),
+            "min" = do.call(pmin, lapply(units, unclass)),
+            "max" = do.call(pmax, lapply(units, unclass))
+        )
+        return(`attributes<-`(res, list(
+            class = c("simpleUnit", "unit", "unit_v2"), 
+            unit = identicalSimple
+        )))
+    }
+    op <- switch(op, sum = 201L, min = 202L, max = 203L)
+    .Call(C_summaryUnits, units, op)
 }
 
 #########################
@@ -403,16 +410,16 @@ pSummary <- function(..., op) {
 # except at the top level
 
 `[.unit` <- function(x, index, top = TRUE) {
-  x <- upgradeUnit(x) # guard against old unit
-  attr <- attributes(x)
-  x <- unclass(x)
-  n <- length(x)
-  if (is.numeric(index) && any(index > n)) {
-    if (top) stop('index out of bounds ("unit" subsetting)', call. = FALSE)
-    index <- (seq_len(n)[index] - 1L) %% n + 1L
-  }
-  x <- x[index]
-  `attributes<-`(x, attr)
+    x <- upgradeUnit(x) # guard against old unit
+    attr <- attributes(x)
+    x <- unclass(x)
+    n <- length(x)
+    if (is.numeric(index) && any(index > n)) {
+        if (top) stop('index out of bounds ("unit" subsetting)', call. = FALSE)
+        index <- (seq_len(n)[index] - 1L) %% n + 1L
+    }
+    x <- x[index]
+    `attributes<-`(x, attr)
 }
 `[[.unit` <- function(x, index, ...) {
     if (length(index) != 1) {
@@ -470,13 +477,13 @@ pSummary <- function(..., op) {
 # unit.list
 
 unit.c <- function(..., check = TRUE) {
-  x <- list(...)
-  identicalSimple <- identicalUnits(x)
-  if (!is.null(identicalSimple)) {
-  	`attributes<-`(unlist(x), list(class = c('simpleUnit', 'unit', 'unit_v2'), unit = identicalSimple))
-  } else {
-  	`class<-`(unlist(lapply(x, as.unit), recursive = FALSE), c('unit', 'unit_v2'))
-  }
+    x <- list(...)
+    identicalSimple <- identicalUnits(x)
+    if (!is.null(identicalSimple)) {
+        `attributes<-`(unlist(x), list(class = c('simpleUnit', 'unit', 'unit_v2'), unit = identicalSimple))
+    } else {
+        `class<-`(unlist(lapply(x, as.unit), recursive = FALSE), c('unit', 'unit_v2'))
+    }
 }
 
 #########################
@@ -484,8 +491,8 @@ unit.c <- function(..., check = TRUE) {
 #########################
 
 rep.unit <- function(x, times = 1, length.out = NA, each = 1, ...) {
-  index <- rep(seq_along(x), times = times, length.out = length.out, each = each)
-  x[index]
+    index <- rep(seq_along(x), times = times, length.out = length.out, each = each)
+    x[index]
 }
 
 # Vestige from when rep() was not generic
@@ -707,59 +714,59 @@ grobDescent.default <- function(x) {
 #########################
 
 absolute.units <- function(unit) {
-  .Call(C_absoluteUnits, unit)
+    .Call(C_absoluteUnits, unit)
 }
 
 # Lookup table for unit ids
 # This table MUST correspond to the enumeration in grid.h
 units <- list(
-  '0' = "npc",
-  '1' = "cm",
-  '2' = "inches",
-  '3' = "lines",
-  '4' = "native",
-  '5' = "null",
-  '6' = "snpc",
-  '7' = "mm",
-  '8' = "points",
-  '9' = "picas",
-  '10' = "bigpts",
-  '11' = "dida",
-  '12' = "cicero",
-  '13' = "scaledpts",
-  '14' = "strwidth",
-  '15' = "strheight",
-  '16' = "strascent",
-  '17' = "strdescent",
-  '18' = "char",
-  '19' = "grobx",
-  '20' = "groby",
-  '21' = "grobwidth",
-  '22' = "grobheight",
-  '23' = "grobascent",
-  '24' = "grobdescent",
+    '0' = "npc",
+    '1' = "cm",
+    '2' = "inches",
+    '3' = "lines",
+    '4' = "native",
+    '5' = "null",
+    '6' = "snpc",
+    '7' = "mm",
+    '8' = "points",
+    '9' = "picas",
+    '10' = "bigpts",
+    '11' = "dida",
+    '12' = "cicero",
+    '13' = "scaledpts",
+    '14' = "strwidth",
+    '15' = "strheight",
+    '16' = "strascent",
+    '17' = "strdescent",
+    '18' = "char",
+    '19' = "grobx",
+    '20' = "groby",
+    '21' = "grobwidth",
+    '22' = "grobheight",
+    '23' = "grobascent",
+    '24' = "grobdescent",
 
-  '103' = "mylines",
-  '104' = "mychar",
-  '105' = "mystrwidth",
-  '106' = "mystrheight",
+    '103' = "mylines",
+    '104' = "mychar",
+    '105' = "mystrwidth",
+    '106' = "mystrheight",
 
-  '201' = "sum",
-  '202' = "min",
-  '203' = "max",
+    '201' = "sum",
+    '202' = "min",
+    '203' = "max",
 
-  '1001' = "centimetre",
-  '1001' = "centimetres",
-  '1001' = "centimeter",
-  '1001' = "centimeters",
-  '1002' = "in",
-  '1002' = "inch",
-  '1003' = "line",
-  '1007' = "millimetre",
-  '1007' = "millimetres",
-  '1007' = "millimeter",
-  '1007' = "millimeters",
-  '1008' = "point",
-  '1008' = "pt"
+    '1001' = "centimetre",
+    '1001' = "centimetres",
+    '1001' = "centimeter",
+    '1001' = "centimeters",
+    '1002' = "in",
+    '1002' = "inch",
+    '1003' = "line",
+    '1007' = "millimetre",
+    '1007' = "millimetres",
+    '1007' = "millimeter",
+    '1007' = "millimeters",
+    '1008' = "point",
+    '1008' = "pt"
 )
 

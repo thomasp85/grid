@@ -28,17 +28,17 @@
  */
 SEXP unit(double value, int unit) 
 {
-  SEXP units = PROTECT(allocVector(VECSXP, 1));
-  SEXP u = SET_VECTOR_ELT(units, 0, allocVector(VECSXP, 3));
-  SET_VECTOR_ELT(u, 0, ScalarReal(value));
-  SET_VECTOR_ELT(u, 1, R_NilValue);
-  SET_VECTOR_ELT(u, 2, ScalarInteger(unit));
-  SEXP cl = PROTECT(allocVector(STRSXP, 2));
-  SET_STRING_ELT(cl, 0, mkChar("unit"));
-  SET_STRING_ELT(cl, 1, mkChar("unit_v2"));
-  classgets(units, cl);
-  UNPROTECT(2);
-  return units;
+    SEXP units = PROTECT(allocVector(VECSXP, 1));
+    SEXP u = SET_VECTOR_ELT(units, 0, allocVector(VECSXP, 3));
+    SET_VECTOR_ELT(u, 0, ScalarReal(value));
+    SET_VECTOR_ELT(u, 1, R_NilValue);
+    SET_VECTOR_ELT(u, 2, ScalarInteger(unit));
+    SEXP cl = PROTECT(allocVector(STRSXP, 2));
+    SET_STRING_ELT(cl, 0, mkChar("unit"));
+    SET_STRING_ELT(cl, 1, mkChar("unit_v2"));
+    classgets(units, cl);
+    UNPROTECT(2);
+    return units;
 }
 
 int isSimpleUnit(SEXP unit) {
@@ -95,8 +95,8 @@ SEXP unitData(SEXP unit, int index) {
 /* Old alternative to LENGTH when using that didn't work on all unit struct
  */
 int unitLength(SEXP u) {
-  if (isNewUnit(u)) return LENGTH(u);
-  return LENGTH(upgradeUnit(u));
+    if (isNewUnit(u)) return LENGTH(u);
+    return LENGTH(upgradeUnit(u));
 }
 
 
@@ -191,17 +191,17 @@ double pureNullUnitValue(SEXP unit, int index)
 }
 
 int pureNullUnit(SEXP unit, int index, pGEDevDesc dd) {
-  int i, n, result, u = unitUnit(unit, index);
-  if (isArith(u)) {
-    SEXP data = unitData(unit, index);
-    n = unitLength(data);
-    i = 0;
-    result = 1;
-    while (result && i < n) {
-      result = result && pureNullUnit(data, i, dd);
-      i += 1;
-    }
-  } else {  /* Just a plain unit */
+    int i, n, result, u = unitUnit(unit, index);
+    if (isArith(u)) {
+        SEXP data = unitData(unit, index);
+        n = unitLength(data);
+        i = 0;
+        result = 1;
+        while (result && i < n) {
+            result = result && pureNullUnit(data, i, dd);
+            i += 1;
+        }
+    } else {  /* Just a plain unit */
 	/* Special case:  if "grobwidth" or "grobheight" unit
 	 * and width/height(grob) is pure null
 	 */
@@ -839,57 +839,57 @@ double transformX(SEXP x, int index,
 		  double widthCM, double heightCM,
 		  int nullLMode, int nullAMode, pGEDevDesc dd)
 {
-  double result;
-  int i, n, nullamode, unit = unitUnit(x, index);
-  double temp, value = unitValue(x, index);
-  SEXP data = unitData(x, index);
-  switch (unit) {
-  case L_SUM:
-  	n = unitLength(data);
-  	result = 0.0;
-  	for (i = 0; i < n; i++) {
-  		result += transformX(data, i, vpc, gc,
-                         widthCM, heightCM,
-                         nullLMode, L_summing, dd);
-  	}
-  	result *= value;
-  	break;
-  case L_MIN:
-  	n = unitLength(data);
-  	result = DBL_MAX;
-  	for (i = 0; i < n; i++) {
-  		temp = transformX(data, i, vpc, gc,
-                      widthCM, heightCM,
-                      nullLMode, L_minimising,
-                      dd);
-  		if (temp < result) result = temp;
-  	}
-  	result *= value;
-  	break;
-  case L_MAX:
-  	n = unitLength(data);
-  	result = DBL_MIN;
-  	for (i = 0; i < n; i++) {
-  		temp = transformX(data, i, vpc, gc,
-                      widthCM, heightCM,
-                      nullLMode, L_maximising,
-                      dd);
-  		if (temp > result)
-  			result = temp;
-  	}
-  	result *= value;
-  	break;
-  default:
-  	nullamode = nullAMode ? nullAMode : L_plain;
-  	result = transformLocation(value, unit, data,
-                              vpc.xscalemin, vpc.xscalemax, gc,
+    double result;
+    int i, n, nullamode, unit = unitUnit(x, index);
+    double temp, value = unitValue(x, index);
+    SEXP data = unitData(x, index);
+    switch (unit) {
+    case L_SUM:
+        n = unitLength(data);
+        result = 0.0;
+        for (i = 0; i < n; i++) {
+            result += transformX(data, i, vpc, gc,
+                                 widthCM, heightCM,
+                                 nullLMode, L_summing, dd);
+        }
+        result *= value;
+        break;
+    case L_MIN:
+        n = unitLength(data);
+        result = DBL_MAX;
+        for (i = 0; i < n; i++) {
+            temp = transformX(data, i, vpc, gc,
                               widthCM, heightCM,
-                              nullLMode,
-                              nullamode,
+                              nullLMode, L_minimising,
                               dd);
-  }
-  
-  return result;
+            if (temp < result) result = temp;
+        }
+        result *= value;
+        break;
+    case L_MAX:
+        n = unitLength(data);
+        result = DBL_MIN;
+        for (i = 0; i < n; i++) {
+            temp = transformX(data, i, vpc, gc,
+                              widthCM, heightCM,
+                              nullLMode, L_maximising,
+                              dd);
+            if (temp > result)
+                result = temp;
+        }
+        result *= value;
+        break;
+    default:
+        nullamode = nullAMode ? nullAMode : L_plain;
+        result = transformLocation(value, unit, data,
+                                   vpc.xscalemin, vpc.xscalemax, gc,
+                                   widthCM, heightCM,
+                                   nullLMode,
+                                   nullamode,
+                                   dd);
+    }
+    
+    return result;
 }
 
 double transformY(SEXP y, int index, 
