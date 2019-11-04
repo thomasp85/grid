@@ -1798,13 +1798,26 @@ SEXP multUnits(SEXP units, SEXP values) {
     int nValues = LENGTH(values);
 	int n = LENGTH(units) < nValues ? nValues : LENGTH(units);
 	SEXP multiplied = PROTECT(allocVector(VECSXP, n));
-	double *pValues = REAL(values);
-	
-	for (int i = 0; i < n; i++) {
-		SEXP unit = PROTECT(unitScalar(units, i));
-		SET_VECTOR_ELT(multiplied, i, multUnit(unit, pValues[i % nValues]));
-		UNPROTECT(1);
+	if (Rf_isReal(values)) {
+	    double *pValues = REAL(values);
+	    
+	    for (int i = 0; i < n; i++) {
+	        SEXP unit = PROTECT(unitScalar(units, i));
+	        SET_VECTOR_ELT(multiplied, i, multUnit(unit, pValues[i % nValues]));
+	        UNPROTECT(1);
+	    }
+	} else if (Rf_isInteger(values)) {
+	    int *pValues = INTEGER(values);
+	    
+	    for (int i = 0; i < n; i++) {
+	        SEXP unit = PROTECT(unitScalar(units, i));
+	        SET_VECTOR_ELT(multiplied, i, multUnit(unit, (double) pValues[i % nValues]));
+	        UNPROTECT(1);
+	    }
+	} else {
+	    error(_("units can only be multiplied with numerics and integers"));
 	}
+	
 	SEXP cl = PROTECT(allocVector(STRSXP, 2));
 	SET_STRING_ELT(cl, 0, mkChar("unit"));
 	SET_STRING_ELT(cl, 1, mkChar("unit_v2"));
