@@ -25,7 +25,7 @@
 unit <- function(x, units, data = NULL) {
     # Old units passed to a grob will get passed on to unit() and need to be 
     # upgraded instead of converted to the default unit
-    if (inherits(x, 'unit') && !is.unit(x)) return(upgradeUnit(x))
+    if (is.unit(x)) return(upgradeUnit(x))
 
     x <- as.numeric(x)
     units <- as.character(units)
@@ -207,7 +207,7 @@ as.double.simpleUnit <- function(x, ...) as.double(unclass(x), ...)
 as.vector.simpleUnit <- function(x, ...) as.double(unclass(x), ...)
 
 upgradeUnit <- function(x) {
-    if (is.unit(x)) return(x)
+    if (is.newUnit(x)) return(x)
     UseMethod("upgradeUnit")
 }
 upgradeUnit.unit <- function(x) {
@@ -229,6 +229,9 @@ upgradeUnit.default <- function(x) {
     stop("Not a unit object")
 }
 is.unit <- function(x) {
+    inherits(x, 'unit')
+}
+is.newUnit <- function(x) {
     inherits(x, 'unit_v2')
 }
 is.simpleUnit <- function(x) inherits(x, 'simpleUnit')
