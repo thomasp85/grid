@@ -176,13 +176,34 @@ unitDesc <- function(x, format = FALSE, ...) {
     }
 }
 
-unitType <- function(x) {
+unitType <- function(x, recurse=FALSE) {
     x <- upgradeUnit(x)
     if (is.simpleUnit(x)) {
-        rep_len(units[[as.character(attr(x, "unit"))]], length(x))
+        names <- rep_len(units[[as.character(attr(x, "unit"))]], length(x))
+        if (recurse) {
+            unit <- as.list(names)
+            names(unit) <- names
+            unit
+        } else {
+            names
+        }
     } else {
-        unit <- vapply(unclass(x), `[[`, integer(1), 3)
-        unlist(units[as.character(unit)], use.names = FALSE)
+        unit <- lapply(unclass(x), `[[`, 3)
+        names <- unlist(units[as.character(unit)], use.names=FALSE)
+        if (recurse) {
+            sub <- names %in% c("sum", "min", "max")
+            if (any(sub)) {
+                unit[sub] <- lapply(unclass(x)[sub],
+                                    function(u) unitType(u[[2]], recurse))
+            }
+            if (any(!sub)) {
+                unit[!sub] <- names[!sub]
+            }
+            names(unit) <- names
+            unit
+        } else {
+            names
+        }
     }
 }
 
