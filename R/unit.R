@@ -424,6 +424,9 @@ pSummary <- function(..., op) {
         index <- (seq_len(n)[index] - 1L) %% n + 1L
     }
     x <- x[index]
+    if (length(x) == 0) {
+        stop('Cannot create zero-length unit vector ("unit" subsetting)', call. = FALSE)
+    }
     `attributes<-`(x, attr)
 }
 `[[.unit` <- function(x, index, ...) {
