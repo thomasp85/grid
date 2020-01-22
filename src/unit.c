@@ -1570,7 +1570,7 @@ SEXP validData(SEXP data, SEXP validUnits, int n) {
 	int *pValidUnits = INTEGER(validUnits);
 	int dataCopied = 0;
 	
-	if (nData != 1 && nData >= n) {
+	if (nData != 1 && nData < n) {
 		error(_("data must be either NULL, have length 1, or match the length of the final unit vector"));
 	}
 	
