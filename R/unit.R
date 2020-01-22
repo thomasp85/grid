@@ -385,6 +385,7 @@ unit.psum <- function(...) {
 
 pSummary <- function(..., op) {
     units <- list(...)
+    units <- units[lengths(units) != 0]
     # optimisation for simple units
     identicalSimple <- identicalUnits(units)
     if (!is.null(identicalSimple)) {
