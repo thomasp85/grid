@@ -60,7 +60,11 @@ SEXP upgradeUnit(SEXP unit) {
  * This extracts the underlying scalar unit list structure from the unit vector
  */
 SEXP unitScalar(SEXP unit, int index) {
-	int i = index % LENGTH(unit);
+    int l = LENGTH(unit);
+    if (l == 0) {
+        error(_("Cannot create unit scalar from 0-length unit vector"));
+    }
+	int i = index % l;
 	if (isSimpleUnit(unit)) {
 		SEXP newUnit = PROTECT(allocVector(VECSXP, 3));
 		SET_VECTOR_ELT(newUnit, 0, Rf_ScalarReal(REAL(unit)[i]));
