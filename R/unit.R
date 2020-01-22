@@ -448,6 +448,7 @@ pSummary <- function(..., op) {
     if (length(x) == 0) {
         stop('Cannot create zero-length unit vector ("unit" subsetting)', call. = FALSE)
     }
+    if (!is.null(attr$names)) attr$names <- attr$names[index]
     `attributes<-`(x, attr)
 }
 `[[.unit` <- function(x, index, ...) {
