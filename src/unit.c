@@ -1996,3 +1996,55 @@ SEXP summaryUnits(SEXP units, SEXP op_type) {
 	UNPROTECT(2);
 	return out;
 }
+
+void transformAllLoc(SEXP x, SEXP y, int from, int to, double* xx, double* yy,
+                     SEXP gp, const pGEcontext gc, pGEDevDesc dd, int* gpIsScalar,
+                     const pGEcontext gcCache, LViewportContext vpc, 
+                     double vpWidthCM, double vpHeightCM, LTransform transform) {
+    int j = 0;
+    if (isSimpleUnit(x) && isSimpleUnit(y)) {
+        double xFacZero, xFacOne, xFacDiff, yFacZero, yFacOne, yFacDiff;
+        SEXP zeroX = unit(0.0, unitUnit(x, 0));
+        SEXP zeroY = unit(0.0, unitUnit(y, 0));
+        SEXP oneX = unit(1.0, unitUnit(x, 0));
+        SEXP oneY = unit(1.0, unitUnit(y, 0));
+        transformLocn(zeroX, zeroY, 0, vpc, gc,
+                      vpWidthCM, vpHeightCM,
+                      dd,
+                      transform,
+                      &xFacZero, &yFacZero);
+        xFacZero = toDeviceX(xFacZero, GE_INCHES, dd);
+        yFacZero = toDeviceY(yFacZero, GE_INCHES, dd);
+        transformLocn(oneX, oneY, 0, vpc, gc,
+                      vpWidthCM, vpHeightCM,
+                      dd,
+                      transform,
+                      &xFacOne, &yFacOne);
+        xFacOne = toDeviceX(xFacOne, GE_INCHES, dd);
+        yFacOne = toDeviceY(yFacOne, GE_INCHES, dd);
+        
+        xFacDiff = xFacOne - xFacZero;
+        yFacDiff = yFacOne - yFacZero;
+        
+        for (int i = from; i < to; i++) {
+            xx[j] = REAL(x)[i] * xFacDiff + xFacZero;
+            yy[j] = REAL(y)[i] * yFacDiff + yFacZero;
+            j++;
+        }
+        return;
+    }
+    
+    for (int i = from; i < to; i++) {
+        updateGContext(gp, i, gc, dd, gpIsScalar, gcCache);
+        transformLocn(x, y, i, vpc, gc,
+                      vpWidthCM, vpHeightCM,
+                      dd,
+                      transform,
+                      &(xx[j]), &(yy[j]));
+        /* The graphics engine only takes device coordinates
+         */
+        xx[j] = toDeviceX(xx[j], GE_INCHES, dd);
+        yy[j] = toDeviceY(yy[j], GE_INCHES, dd);
+        j++;
+    }
+} 

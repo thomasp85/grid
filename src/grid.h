@@ -447,6 +447,11 @@ double transformXYfromNPC(double x, int to, double min, double max);
 
 double transformWHfromNPC(double x, int to, double min, double max);
 
+void transformAllLoc(SEXP x, SEXP y, int from, int to, double* xx, double* yy,
+                     SEXP gp, const pGEcontext gc, pGEDevDesc dd, int* gpIsScalar,
+                     const pGEcontext gcCache, LViewportContext vpc, 
+                     double vpWidthCM, double vpHeightCM, LTransform transform);
+
 /* From just.c */
 double justifyX(double x, double width, double hjust);
 
