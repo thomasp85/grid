@@ -3453,25 +3453,27 @@ SEXP L_points(SEXP x, SEXP y, SEXP pch, SEXP size)
     vmax = vmaxget();
     xx = (double *) R_alloc(nx, sizeof(double));
     yy = (double *) R_alloc(nx, sizeof(double));
-    for (i=0; i<nx; i++) {
-	updateGContext(currentgp, i, &gc, dd, gpIsScalar, &gcCache);
-	transformLocn(x, y, i, vpc, &gc,
-		      vpWidthCM, vpHeightCM,
-		      dd,
-		      transform,
-		      &(xx[i]), &(yy[i]));
-	/* The graphics engine only takes device coordinates
-	 */
-	xx[i] = toDeviceX(xx[i], GE_INCHES, dd);
-	yy[i] = toDeviceY(yy[i], GE_INCHES, dd);
-    }
+    transformAllLoc(x, y, 0, nx, xx, yy, currentgp, &gc, dd, gpIsScalar, &gcCache, vpc, vpWidthCM, vpHeightCM, transform);
+    //for (i=0; i<nx; i++) {
+	//updateGContext(currentgp, i, &gc, dd, gpIsScalar, &gcCache);
+	//transformLocn(x, y, i, vpc, &gc,
+	//	      vpWidthCM, vpHeightCM,
+	//	      dd,
+	//	      transform,
+	//	      &(xx[i]), &(yy[i]));
+	///* The graphics engine only takes device coordinates
+	// */
+	//xx[i] = toDeviceX(xx[i], GE_INCHES, dd);
+	//yy[i] = toDeviceY(yy[i], GE_INCHES, dd);
+    //}
     ss = (double *) R_alloc(nss, sizeof(double));
-    for (i=0; i < nss; i++) {
-        updateGContext(currentgp, i, &gc, dd, gpIsScalar, &gcCache);
-        ss[i] = transformWidthtoINCHES(size, i, vpc, &gc,
-                                       vpWidthCM, vpHeightCM, dd);
-        ss[i] = toDeviceWidth(ss[i], GE_INCHES, dd);
-    }
+    transformAllWidth(size, 0, nss, ss, currentgp, &gc, dd, gpIsScalar, &gcCache, vpc, vpWidthCM, vpHeightCM);
+    //for (i=0; i < nss; i++) {
+    //    updateGContext(currentgp, i, &gc, dd, gpIsScalar, &gcCache);
+    //    ss[i] = transformWidthtoINCHES(size, i, vpc, &gc,
+    //                                   vpWidthCM, vpHeightCM, dd);
+    //    ss[i] = toDeviceWidth(ss[i], GE_INCHES, dd);
+    //}
     ps = (int *) R_alloc(npch, sizeof(int));
     if (isString(pch)) pType = 0;
     else if (isInteger(pch)) pType = 1;
