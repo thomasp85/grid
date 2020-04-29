@@ -452,6 +452,16 @@ void transformAllLoc(SEXP x, SEXP y, int from, int to, double* xx, double* yy,
                      const pGEcontext gcCache, LViewportContext vpc, 
                      double vpWidthCM, double vpHeightCM, LTransform transform);
 
+void transformAllWidth(SEXP x, int from, int to, double* xx,
+                       SEXP gp, const pGEcontext gc, pGEDevDesc dd, int* gpIsScalar,
+                       const pGEcontext gcCache, LViewportContext vpc, 
+                       double vpWidthCM, double vpHeightCM);
+
+void transformAllHeight(SEXP x, int from, int to, double* xx,
+                        SEXP gp, const pGEcontext gc, pGEDevDesc dd, int* gpIsScalar,
+                        const pGEcontext gcCache, LViewportContext vpc, 
+                        double vpWidthCM, double vpHeightCM);
+
 /* From just.c */
 double justifyX(double x, double width, double hjust);
 

@@ -2048,3 +2048,65 @@ void transformAllLoc(SEXP x, SEXP y, int from, int to, double* xx, double* yy,
         j++;
     }
 } 
+void transformAllWidth(SEXP x, int from, int to, double* xx,
+                     SEXP gp, const pGEcontext gc, pGEDevDesc dd, int* gpIsScalar,
+                     const pGEcontext gcCache, LViewportContext vpc, 
+                     double vpWidthCM, double vpHeightCM) {
+    int j = 0;
+    if (isSimpleUnit(x)) {
+        double xFacZero, xFacOne, xFacDiff;
+        SEXP zeroX = unit(0.0, unitUnit(x, 0));
+        SEXP oneX = unit(1.0, unitUnit(x, 0));
+        xFacZero = transformWidthtoINCHES(zeroX, 0, vpc, gc, vpWidthCM, 
+                                          vpHeightCM, dd);
+        xFacZero = toDeviceWidth(xFacZero, GE_INCHES, dd);
+        xFacOne = transformWidthtoINCHES(oneX, 0, vpc, gc, vpWidthCM, 
+                                         vpHeightCM, dd);
+        xFacOne = toDeviceWidth(xFacOne, GE_INCHES, dd);
+        
+        xFacDiff = xFacOne - xFacZero;
+        
+        for (int i = from; i < to; i++) {
+            xx[j] = REAL(x)[i] * xFacDiff + xFacZero;
+            j++;
+        }
+        return;
+    }
+    
+    for (int i = from; i < to; i++) {
+        updateGContext(gp, i, gc, dd, gpIsScalar, gcCache);
+        xx[i] = transformWidthtoINCHES(x, i, vpc, gc, vpWidthCM, vpHeightCM, dd);
+        xx[i] = toDeviceWidth(xx[i], GE_INCHES, dd);
+    }
+}
+void transformAllHeight(SEXP x, int from, int to, double* xx,
+                        SEXP gp, const pGEcontext gc, pGEDevDesc dd, int* gpIsScalar,
+                        const pGEcontext gcCache, LViewportContext vpc, 
+                        double vpWidthCM, double vpHeightCM) {
+    int j = 0;
+    if (isSimpleUnit(x)) {
+        double xFacZero, xFacOne, xFacDiff;
+        SEXP zeroX = unit(0.0, unitUnit(x, 0));
+        SEXP oneX = unit(1.0, unitUnit(x, 0));
+        xFacZero = transformHeighttoINCHES(zeroX, 0, vpc, gc, vpWidthCM, 
+                                           vpHeightCM, dd);
+        xFacZero = toDeviceHeight(xFacZero, GE_INCHES, dd);
+        xFacOne = transformHeighttoINCHES(oneX, 0, vpc, gc, vpWidthCM, 
+                                          vpHeightCM, dd);
+        xFacOne = toDeviceHeight(xFacOne, GE_INCHES, dd);
+        
+        xFacDiff = xFacOne - xFacZero;
+        
+        for (int i = from; i < to; i++) {
+            xx[j] = REAL(x)[i] * xFacDiff + xFacZero;
+            j++;
+        }
+        return;
+    }
+    
+    for (int i = from; i < to; i++) {
+        updateGContext(gp, i, gc, dd, gpIsScalar, gcCache);
+        xx[i] = transformHeighttoINCHES(x, i, vpc, gc, vpWidthCM, vpHeightCM, dd);
+        xx[i] = toDeviceHeight(xx[i], GE_INCHES, dd);
+    }
+}
